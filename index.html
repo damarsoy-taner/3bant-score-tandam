@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3-Bant Bilardo Scoreboard Elite Pro V8</title>
+    <style>
+        :root { --p1-color: #ffffff; --p2-color: #f1e05a; --bg-color: #000000; --gold: #b8860b; --active-red: #ff0000; --btn-green: #28a745; --input-bg: #1a1a1a; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { background-color: var(--bg-color); color: white; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* PANELLER */
+        #settings-overlay, #end-match-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,10,10,0.95); z-index: 2000; display: flex; flex-direction: column; padding: 20px 40px; align-items: center; justify-content: center; }
+        #end-match-overlay { display: none; z-index: 3000; }
+        
+        .setup-section { display: flex; justify-content: center; gap: 20px; width: 100%; max-width: 1100px; margin-bottom: 15px; }
+        .setup-card { background: #151515; border: 1px solid #333; border-radius: 20px; padding: 15px 25px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .setup-title { color: var(--gold); font-size: 18px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 5px; text-transform: uppercase; }
+        .setup-group { display: flex; flex-direction: column; gap: 5px; }
+        .setup-label { font-size: 14px; color: #888; font-weight: bold; }
+        .setup-input { background: var(--input-bg); border: 1px solid #444; color: #ffcc00; font-size: 24px; padding: 10px; border-radius: 12px; text-align: center; }
+
+        /* BUTONLAR */
+        .btn-start-big { width: 100%; max-width: 400px; padding: 20px; background: var(--btn-green); color: white; font-size: 28px; font-weight: bold; border-radius: 50px; border: none; cursor: pointer; margin: 10px 0; box-shadow: 0 5px 20px rgba(0,0,0,0.4); }
+        .btn-new-match { background: var(--btn-green); color: white; padding: 15px 45px; font-size: 22px; border-radius: 50px; border: none; font-weight: bold; cursor: pointer; }
+
+        /* SKORBOARD ÜST */
+        .top-info { display: flex; justify-content: space-around; height: 10vh; padding-top: 10px; align-items: center; }
+        #timer-display { font-size: 55px; color: #666; font-family: 'Courier New', monospace; font-weight: bold; }
+        .display-name { font-size: 32px; font-weight: bold; text-transform: uppercase; }
+        .timeout-container { display: flex; gap: 6px; margin-top: 5px; justify-content: center; }
+        .timeout-dot { width: 15px; height: 15px; border-radius: 50%; background: #333; }
+        .timeout-dot.active { background: #ff4444; box-shadow: 0 0 8px #ff4444; }
+
+        /* ANA SAHNE */
+        .main-stage { flex: 1; display: flex; justify-content: space-between; padding: 10px 20px; gap: 10px; }
+        .score-card-container { flex: 1; position: relative; max-width: 44%; display: flex; gap: 10px; }
+        
+        .score-card { flex: 1; border-radius: 50px; position: relative; display: flex; flex-direction: column; overflow: hidden; border: 10px solid transparent; transition: 0.4s; }
+        
+        /* KALIN ÇİZGİ */
+        .score-card::before { 
+            content: ""; 
+            position: absolute; 
+            top: 50%; 
+            left: 0; 
+            width: 100%; 
+            height: 3px; 
+            background: rgba(0, 0, 0, 0.85); 
+            z-index: 1; 
+            box-shadow: 0 1px 2px rgba(255,255,255,0.1); 
+        }
+        
+        .p1-card { background-color: var(--p1-color); color: black; }
+        .p2-card { background-color: var(--p2-color); color: black; }
+        .active-turn { border-color: var(--active-red); box-shadow: 0 0 60px rgba(255, 0, 0, 0.8); z-index: 5; opacity: 1; transform: scale(1.01); }
+        .inactive-turn { opacity: 0.55; }
+        
+        .touch-area { height: 50%; width: 100%; z-index: 15; cursor: pointer; }
+        .score-val { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 380px; font-weight: bold; pointer-events: none; z-index: 2; }
+        .btn-timeout { width: 75px; height: 180px; align-self: center; background: #ff4444; border: none; border-radius: 20px; color: white; font-size: 45px; font-weight: bold; z-index: 20; cursor: pointer; }
+
+        /* ORTA PANEL VE PAUSE TUŞU */
+        .center-hub { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 16%; padding: 10px 0; }
+        .shot-clock-container { position: relative; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; }
+        
+        /* Yarı Şeffaf Pause Butonu */
+        #shot-clock-pause-btn {
+            position: absolute; width: 100%; height: 100%; border-radius: 50%; border: none;
+            background: rgba(0, 0, 0, 0.45); color: white; font-size: 14px; font-weight: bold;
+            z-index: 10; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.3s; text-transform: uppercase; border: 2px solid rgba(255,255,255,0.1);
+        }
+        #shot-clock-pause-btn.paused { background: rgba(255, 0, 0, 0.3); border-color: red; }
+
+        .shot-clock-svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); opacity: 0.6; }
+        .shot-clock-bg { fill: none; stroke: #222; stroke-width: 6; }
+        .shot-clock-progress { fill: none; stroke: #00ff00; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
+        
+        #shot-clock-display { font-size: 90px; font-weight: 900; color: #00ff00; z-index: 2; opacity: 0.7; transition: all 0.3s; }
+        .warning-active { font-size: 130px !important; opacity: 1 !important; text-shadow: 0 0 20px rgba(255,0,0,0.5); }
+
+        .run-val { font-size: 90px; color: #ffcc00; font-weight: bold; }
+        .inn-val { font-size: 80px; font-weight: bold; color: #fff; }
+
+        /* ALT BAR */
+        .bottom-bar { height: 15vh; display: flex; justify-content: space-between; padding: 0 40px; align-items: center; }
+        .stat-group { display: flex; gap: 80px; width: 38%; }
+        .stat-item { display: flex; align-items: baseline; gap: 15px; }
+        .stat-label { font-size: 26px; color: #555; font-weight: 800; }
+        .stat-val { font-size: 70px; font-weight: 900; line-height: 1; }
+    </style>
+</head>
+<body onclick="initAudio()">
+
+<div id="settings-overlay">
+    <div style="margin-bottom: 10px;"><h1 style="color: var(--gold); font-size: 32px; margin: 5px;">MAÇ KURULUMU</h1></div>
+    <div class="setup-section">
+        <div class="setup-card">
+            <div class="setup-title">OYUNCULAR</div>
+            <div class="setup-group"><span class="setup-label">BEYAZ</span><input type="text" id="name1" class="setup-input" placeholder="BEYAZ"></div>
+            <div class="setup-group"><span class="setup-label">SARI</span><input type="text" id="name2" class="setup-input" placeholder="SARI"></div>
+        </div>
+        <div class="setup-card">
+            <div class="setup-title">FORMAT</div>
+            <div class="mode-selector">
+                <input type="radio" id="mode-score" name="match-mode" value="score" checked>
+                <label for="mode-score">SAYI LİMİTİ</label>
+                <input type="radio" id="mode-inning" name="match-mode" value="inning">
+                <label for="mode-inning">ISTAKA LİMİTİ</label>
+            </div>
+            <div class="setup-group"><span class="setup-label">HEDEF LİMİT</span><input type="number" id="input-limit" class="setup-input" value="40"></div>
+        </div>
+    </div>
+    <button class="btn-start-big" onclick="startMatch()">MAÇI BAŞLAT</button>
+    <div class="setup-section" style="margin-top: 10px;">
+        <div class="setup-card">
+            <div class="setup-title">SÜRE AYARLARI</div>
+            <div class="mode-selector" style="margin-bottom: 10px;">
+                <input type="checkbox" id="shot-clock-enabled" checked onchange="updateSCLabel(this)">
+                <label for="shot-clock-enabled" id="sc-status-label">VURUŞ SÜRESİ: AKTİF</label>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <div class="setup-group" style="flex:1"><span class="setup-label">SÜRE</span><input type="number" id="input-shot-time" class="setup-input" value="30"></div>
+                <div class="setup-group" style="flex:1"><span class="setup-label">UYARI (SN)</span><input type="number" id="input-warning-time" class="setup-input" value="10"></div>
+                <div class="setup-group" style="flex:1"><span class="setup-label">EK HAK</span><input type="number" id="input-to-count" class="setup-input" value="3"></div>
+                <div class="setup-group" style="flex:1"><span class="setup-label">EK SÜRE</span><input type="number" id="input-to-time" class="setup-input" value="30"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="end-match-overlay">
+    <div id="winner-text" class="winner-title">KAZANAN</div>
+    <div class="stats-container">
+        <div id="stats-box-1" class="player-stats">
+            <div id="res-name-1" class="winner-name">OYUNCU 1</div>
+            <div class="stat-row">Toplam Skor: <strong id="res-score-1">0</strong></div>
+            <div class="stat-row">Ortalama: <strong id="res-avg-1">0.000</strong></div>
+            <div class="stat-row">En Yüksek Seri: <strong id="res-hr-1">0</strong></div>
+            <div class="stat-row">Istaka Sayısı: <strong id="res-inn-1">0</strong></div>
+        </div>
+        <div id="stats-box-2" class="player-stats">
+            <div id="res-name-2" class="winner-name">OYUNCU 2</div>
+            <div class="stat-row">Toplam Skor: <strong id="res-score-2">0</strong></div>
+            <div class="stat-row">Ortalama: <strong id="res-avg-2">0.000</strong></div>
+            <div class="stat-row">En Yüksek Seri: <strong id="res-hr-2">0</strong></div>
+            <div class="stat-row">Istaka Sayısı: <strong id="res-inn-2">0</strong></div>
+        </div>
+    </div>
+    <button class="btn-start-big" style="margin-top: 40px;" onclick="location.reload()">YENİ MAÇ</button>
+</div>
+
+<div class="top-info">
+    <div style="width: 30vw; text-align: center;"><div id="disp-name1" class="display-name">BEYAZ</div><div id="to-dots-1" class="timeout-container"></div></div>
+    <div id="timer-display">00:00</div>
+    <div style="width: 30vw; text-align: center;"><div id="disp-name2" class="display-name" style="color: var(--p2-color);">SARI</div><div id="to-dots-2" class="timeout-container"></div></div>
+</div>
+
+<div class="main-stage">
+    <div class="score-card-container">
+        <div class="score-card p1-card active-turn" id="card-1">
+            <div class="touch-area" onclick="handleInteraction(1, 'add')"></div>
+            <div class="score-val" id="s1">0</div>
+            <div class="touch-area" onclick="handleInteraction(1, 'sub')"></div>
+        </div>
+        <button id="to-btn-1" class="btn-timeout" onclick="useTimeout(1)">+</button>
+    </div>
+    <div class="center-hub">
+        <div class="shot-clock-container" id="sc-visual-box">
+            <button id="shot-clock-pause-btn" onclick="toggleShotClock()">PAUSE</button>
+            <svg class="shot-clock-svg" width="180" height="180">
+                <circle class="shot-clock-bg" cx="90" cy="90" r="80"></circle>
+                <circle id="progress-circle" class="shot-clock-progress" cx="90" cy="90" r="80" stroke-dasharray="502.6" stroke-dashoffset="0"></circle>
+            </svg>
+            <div id="shot-clock-display">30</div>
+        </div>
+        <div style="text-align: center;"><div style="color: #555; font-size: 16px;">SERİ</div><span id="run-display" class="run-val">0</span></div>
+        <div onclick="changeTurn()" style="text-align: center; cursor: pointer;"><span id="inn-display" class="inn-val">1</span><div style="color: #444; font-size: 16px;">ISTAKA</div></div>
+    </div>
+    <div class="score-card-container">
+        <button id="to-btn-2" class="btn-timeout" onclick="useTimeout(2)">+</button>
+        <div class="score-card p2-card inactive-turn" id="card-2">
+            <div class="touch-area" onclick="handleInteraction(2, 'add')"></div>
+            <div class="score-val" id="s2">0</div>
+            <div class="touch-area" onclick="handleInteraction(2, 'sub')"></div>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-bar">
+    <div class="stat-group">
+        <div class="stat-item"><span class="stat-label">HR</span><span id="hr1" class="stat-val">0</span></div>
+        <div class="stat-item"><span class="stat-label">AVG</span><span id="avg1" class="stat-val">0.000</span></div>
+    </div>
+    <button class="btn-new-match" onclick="resetMatch()">YENİ MAÇ</button>
+    <div class="stat-group" style="justify-content: flex-end;">
+        <div class="stat-item"><span class="stat-label" style="color:#555">HR</span><span id="hr2" class="stat-val" style="color:var(--p2-color)">0</span></div>
+        <div class="stat-item"><span class="stat-label" style="color:#555">AVG</span><span id="avg2" class="stat-val" style="color:var(--p2-color)">0.000</span></div>
+    </div>
+</div>
+
+<script>
+    let scores = { 1: 0, 2: 0 }, turn = 1, totalInnings = 1, highRuns = { 1: 0, 2: 0 }, currentRun = 0;
+    let matchSecs = 0, currentShot, isPaused = true, shotClockPaused = false, timerInt, audioContext;
+    let config = {};
+    let isLastInning = false;
+    const CIRCUMFERENCE = 502.6;
+
+    function updateSCLabel(el) { document.getElementById('sc-status-label').innerText = el.checked ? "VURUŞ SÜRESİ: AKTİF" : "VURUŞ SÜRESİ: PASİF"; }
+    function initAudio() { if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
+
+    function toggleShotClock() {
+        if (!config.shotActive) return;
+        shotClockPaused = !shotClockPaused;
+        const btn = document.getElementById('shot-clock-pause-btn');
+        btn.innerText = shotClockPaused ? "DEVAM" : "PAUSE";
+        btn.classList.toggle('paused', shotClockPaused);
+    }
+
+    function playSoftBeep() {
+        if (!audioContext) return;
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain); gain.connect(audioContext.destination);
+        osc.type = 'sine'; osc.frequency.setValueAtTime(440, audioContext.currentTime);
+        gain.gain.setValueAtTime(0, audioContext.currentTime);
+        gain.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+        osc.start(); osc.stop(audioContext.currentTime + 0.3);
+    }
+
+    function startMatch() {
+        config = {
+            name1: document.getElementById('name1').value || "BEYAZ",
+            name2: document.getElementById('name2').value || "SARI",
+            shotActive: document.getElementById('shot-clock-enabled').checked,
+            shotTime: parseInt(document.getElementById('input-shot-time').value),
+            warningTime: parseInt(document.getElementById('input-warning-time').value),
+            toCount: parseInt(document.getElementById('input-to-count').value),
+            toTime: parseInt(document.getElementById('input-to-time').value),
+            limit: parseInt(document.getElementById('input-limit').value),
+            mode: document.querySelector('input[name="match-mode"]:checked').value
+        };
+        document.getElementById('disp-name1').innerText = config.name1;
+        document.getElementById('disp-name2').innerText = config.name2;
+        document.getElementById('sc-visual-box').style.visibility = config.shotActive ? 'visible' : 'hidden';
+        config.timeouts = { 1: config.toCount, 2: config.toCount };
+        currentShot = config.shotTime;
+        document.getElementById('settings-overlay').style.display = 'none';
+        isPaused = false;
+        shotClockPaused = false;
+        if(timerInt) clearInterval(timerInt);
+        timerInt = setInterval(tick, 1000);
+        updateUI();
+    }
+
+    function tick() {
+        if (isPaused) return;
+        matchSecs++;
+        let m = Math.floor(matchSecs / 60), s = matchSecs % 60;
+        document.getElementById('timer-display').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        
+        if (config.shotActive && currentShot > 0 && !shotClockPaused) {
+            currentShot--;
+            updateShotClockUI();
+            if (currentShot < config.warningTime && currentShot > 0) playSoftBeep();
+            if (currentShot === 0) {
+                if (config.timeouts[turn] > 0) useTimeout(turn);
+                else changeTurn();
+            }
+        }
+    }
+
+    function updateShotClockUI() {
+        const sd = document.getElementById('shot-clock-display');
+        const circle = document.getElementById('progress-circle');
+        sd.innerText = currentShot;
+        const offset = CIRCUMFERENCE - (currentShot / config.shotTime) * CIRCUMFERENCE;
+        circle.style.strokeDashoffset = offset;
+        if (currentShot <= config.warningTime) {
+            sd.style.color = "red"; circle.style.stroke = "red"; sd.classList.add('warning-active');
+        } else {
+            sd.style.color = "#00ff00"; circle.style.stroke = "#00ff00"; sd.classList.remove('warning-active');
+        }
+    }
+
+    function useTimeout(p) { if (isPaused || turn !== p || config.timeouts[p] <= 0 || !config.shotActive) return; config.timeouts[p]--; currentShot += config.toTime; updateUI(); }
+
+    function handleInteraction(p, type) {
+        if (isPaused) return;
+        if (type === 'add') {
+            if (turn !== p) changeTurn(); 
+            else {
+                scores[p]++; currentRun++;
+                if (currentRun > highRuns[p]) highRuns[p] = currentRun;
+                currentShot = config.shotTime;
+                // Sayıdan sonra topların durmasını beklemek için otomatik durdurma
+                shotClockPaused = true;
+                const btn = document.getElementById('shot-clock-pause-btn');
+                btn.innerText = "DEVAM";
+                btn.classList.add('paused');
+                
+                if (config.mode === 'score' && scores[p] >= config.limit) {
+                    if (p === 1) { isLastInning = true; changeTurn(); } 
+                    else endMatch(config.name2 + " KAZANDI!");
+                }
+            }
+        } else if (type === 'sub' && turn === p && currentRun > 0) { scores[p]--; currentRun--; }
+        updateUI();
+    }
+
+    function changeTurn() {
+        if (turn === 2) {
+            if (isLastInning) {
+                if (scores[1] > scores[2]) endMatch(config.name1 + " KAZANDI!");
+                else if (scores[2] > scores[1]) endMatch(config.name2 + " KAZANDI!");
+                else endMatch("BERABERE!");
+                return;
+            }
+            totalInnings++;
+            if (config.mode === 'inning' && totalInnings > config.limit) return endMatch("LİMİT DOLDU!");
+            turn = 1;
+        } else turn = 2;
+        currentRun = 0; currentShot = config.shotTime;
+        // Turn değişince süre normal başlar
+        shotClockPaused = false;
+        const btn = document.getElementById('shot-clock-pause-btn');
+        btn.innerText = "PAUSE";
+        btn.classList.remove('paused');
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('s1').innerText = scores[1]; document.getElementById('s2').innerText = scores[2];
+        document.getElementById('run-display').innerText = currentRun; document.getElementById('inn-display').innerText = totalInnings;
+        document.getElementById('hr1').innerText = highRuns[1]; document.getElementById('hr2').innerText = highRuns[2];
+        document.getElementById('avg1').innerText = (scores[1] / totalInnings).toFixed(3);
+        document.getElementById('avg2').innerText = (scores[2] / (turn === 1 ? Math.max(1, totalInnings-1) : totalInnings)).toFixed(3);
+        document.getElementById('card-1').className = `score-card p1-card ${turn===1?'active-turn':'inactive-turn'}`;
+        document.getElementById('card-2').className = `score-card p2-card ${turn===2?'active-turn':'inactive-turn'}`;
+        updateShotClockUI();
+        [1,2].forEach(p => {
+            const dots = document.getElementById(`to-dots-${p}`); dots.innerHTML = '';
+            for(let i=0; i<config.toCount; i++) {
+                let dot = document.createElement('div');
+                dot.className = 'timeout-dot' + (i < config.timeouts[p] ? ' active' : '');
+                dots.appendChild(dot);
+            }
+            document.getElementById(`to-btn-${p}`).disabled = (!config.shotActive || turn !== p || config.timeouts[p] <= 0);
+        });
+    }
+
+    function resetMatch() { if(confirm("Maç sıfırlansın mı?")) location.reload(); }
+    function endMatch(msg) { isPaused = true; clearInterval(timerInt); document.getElementById('end-match-overlay').style.display = 'flex'; document.getElementById('winner-text').innerText = msg; }
+</script>
+</body>
+</html>
