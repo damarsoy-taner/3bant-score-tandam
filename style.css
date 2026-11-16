@@ -207,6 +207,9 @@ body.view-segment .score-card::before { display: none; }
     line-height: 1 !important;
 }
 .center-hub {
+    -webkit-flex: 0 0 20% !important;
+    flex: 0 0 20% !important;
+    width: 20% !important;
     display: -webkit-flex !important;
     display: flex !important;
     -webkit-flex-direction: column !important;
@@ -216,8 +219,48 @@ body.view-segment .score-card::before { display: none; }
     -webkit-align-items: center !important;
     align-items: center !important;
     height: 100% !important;
-    padding: 14px 0 !important;
+    padding: 1.5vh 0 !important;
 }
 .center-hub > *, .shot-clock-wrapper, .center-stat {
     margin: 0 !important;
+}
+#shot-clock-pause-btn, .center-stat-label {
+    font-size: 1.9vh !important;
+    line-height: 1 !important;
+    margin-bottom: 0 !important;
+}
+.shot-clock-container {
+    margin-top: 0.6vh !important;
+}
+#shot-clock-display, .run-val, .inn-val {
+    font-size: 7.5vh !important;
+    line-height: 1 !important;
+    font-weight: 900 !important;
+    margin-top: 0.6vh !important;
+}
+#shot-clock-display {
+    margin-top: 0 !important;
+}
+.seg-digit.seg-sm {
+    width: 4.4vh !important;
+    height: 7.5vh !important;
+}
+.main-stage {
+    padding: 0.6vh 16px !important;
+}
+.score-card-container {
+    -webkit-flex: 0 0 40% !important;
+    flex: 0 0 40% !important;
+    max-width: 40% !important;
+}
+.stat-row-top {
+    display: -webkit-flex !important;
+    display: flex !important;
+    -webkit-justify-content: space-around !important;
+    justify-content: space-around !important;
+    width: 100% !important;
+}
+.stat-row-bottom {
+    margin-top: 1.2vh !important;
+    text-align: center !important;
 }
