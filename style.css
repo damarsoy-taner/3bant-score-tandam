@@ -34,7 +34,7 @@ body { background-color: var(--bg-color); color: white; font-family: 'Segoe UI',
 /* ANA SAHNE */
 .main-stage { -webkit-flex: 1; flex: 1; min-height: 0; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; align-items: center; padding: 4px 14px; }
 .score-card-container { -webkit-flex: 0 0 41%; flex: 0 0 41%; max-width: 41%; position: relative; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: stretch; align-items: stretch; }
-.score-card { width: 100%; height: 46vh; max-height: 368px; border-radius: 32px; position: relative; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; overflow: hidden; border: 8px solid transparent; transition: 0.4s; z-index: 10; padding: 4px 8px; }
+.score-card { width: 100%; height: 46vh; max-height: 390px; border-radius: 32px; position: relative; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; overflow: hidden; border: 8px solid transparent; transition: 0.4s; z-index: 10; padding: 4px 8px; }
 .score-card::before { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 3px; background: rgba(0, 0, 0, 0.9); z-index: 5; pointer-events: none; }
 body.view-segment .score-card::before { display: none; }
 
@@ -55,7 +55,7 @@ body.view-segment .score-card::before { display: none; }
 
 /* MEKANİK SPLIT-FLAP RAKAMLAR */
 .score-val { position: absolute; top: 50%; left: 50%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); display: -webkit-flex; display: flex; -webkit-flex-wrap: nowrap; flex-wrap: nowrap; white-space: nowrap; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; pointer-events: none; z-index: 1; max-width: calc(100% - 12px); max-height: calc(100% - 8px); }
-.flap-digit { font-family: 'Oswald', 'Arial Narrow', Impact, sans-serif; font-weight: 700; font-size: 325px; line-height: 1; letter-spacing: 0; padding: 4px 8px; border-radius: 14px; position: relative; display: -webkit-inline-flex; display: inline-flex; -webkit-flex-shrink: 0; flex-shrink: 0; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; margin-right: 4px; background: rgba(0, 0, 0, 0.06); border: 2px solid rgba(0, 0, 0, 0.22); box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.12); -webkit-perspective: 1000px; perspective: 1000px; -webkit-transform: translateZ(0); transform: translateZ(0); }
+.flap-digit { font-family: 'Oswald', 'Arial Narrow', Impact, sans-serif; font-weight: 700; font-size: 350px; line-height: 1; letter-spacing: 0; padding: 4px 8px; border-radius: 14px; position: relative; display: -webkit-inline-flex; display: inline-flex; -webkit-flex-shrink: 0; flex-shrink: 0; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; margin-right: 4px; background: rgba(0, 0, 0, 0.06); border: 2px solid rgba(0, 0, 0, 0.22); box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.12); -webkit-perspective: 1000px; perspective: 1000px; -webkit-transform: translateZ(0); transform: translateZ(0); }
 .flap-digit:last-child { margin-right: 0; }
 .flap-digit::after { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 3px; background: rgba(0, 0, 0, 0.85); -webkit-transform: translateY(-50%); transform: translateY(-50%); z-index: 10; }
 .flap-sizer { visibility: hidden; display: block; }
@@ -95,22 +95,23 @@ body.view-segment .score-card::before { display: none; }
 }
 
 /* MEKANİK 7-SEGMENT (VANE / FLIP-SEGMENT) */
-.seg-digit { width: 174px; height: 328px; padding: 10px 8px; border-radius: 14px; position: relative; display: -webkit-inline-flex; display: inline-flex; -webkit-flex-shrink: 0; flex-shrink: 0; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; margin-right: 4px; background: #141619; border: 2px solid #26292e; box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.7); }
+.seg-digit { width: 192px; height: 356px; padding: 10px 8px; border-radius: 14px; position: relative; display: -webkit-inline-flex; display: inline-flex; -webkit-flex-shrink: 0; flex-shrink: 0; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; margin-right: 4px; background: #141619; border: 2px solid #26292e; box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.7); }
 .seg-digit:last-child { margin-right: 0; }
 .seg-digit.seg-sm { width: 5.1vh; height: 8.8vh; padding: 3px; border-radius: 6px; margin-right: 3px; border-width: 1px; }
 .seg-digit.seg-sm:last-child { margin-right: 0; }
 .seg-svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .seg-vane { fill: rgba(255, 255, 255, 0.06); stroke: rgba(255, 255, 255, 0.06); stroke-width: 2.8px; stroke-linejoin: round; opacity: 0.92; transform-box: fill-box; -webkit-transform-origin: center; transform-origin: center; -webkit-transform: scaleY(0.72); transform: scaleY(0.72); -webkit-transition: -webkit-transform 400ms cubic-bezier(0.35, 0.0, 0.25, 1), fill 400ms cubic-bezier(0.35, 0.0, 0.25, 1), stroke 400ms cubic-bezier(0.35, 0.0, 0.25, 1), opacity 400ms cubic-bezier(0.35, 0.0, 0.25, 1); transition: transform 400ms cubic-bezier(0.35, 0.0, 0.25, 1), fill 400ms cubic-bezier(0.35, 0.0, 0.25, 1), stroke 400ms cubic-bezier(0.35, 0.0, 0.25, 1), opacity 400ms cubic-bezier(0.35, 0.0, 0.25, 1); }
 .seg-vane.on { opacity: 1; -webkit-transform: scaleY(1); transform: scaleY(1); -webkit-filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55)); filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55)); }
-.p1-card .seg-vane.on, #inn-display .seg-vane.on { fill: #F2F0E6; stroke: #F2F0E6; }
+.p1-card .seg-vane.on { fill: #F2F0E6; stroke: #F2F0E6; }
+#inn-display .seg-vane.on { fill: #FFFFFF; stroke: #FFFFFF; }
 .p2-card .seg-vane.on, #run-display .seg-vane.on { fill: #F5C518; stroke: #F5C518; }
 #shot-clock-display .seg-vane.on { fill: #00ff00; stroke: #00ff00; }
 #shot-clock-display.warn .seg-vane.on { fill: #ff4444; stroke: #ff4444; }
 
-.btn-timeout { width: 100%; height: 42px; -webkit-flex-shrink: 0; flex-shrink: 0; background: #ff4444; border: none; border-radius: 14px; color: white; font-size: 28px; font-weight: bold; line-height: 1; z-index: 200; cursor: pointer; margin: 8px 0 0 0; }
+.btn-timeout { width: 100%; height: 54px; -webkit-flex-shrink: 0; flex-shrink: 0; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; background: #ff4444; border: none; border-radius: 14px; color: white; font-size: 40px; font-weight: bold; line-height: 1; z-index: 200; cursor: pointer; margin: 8px 0 0 0; padding: 0; }
 
 /* ORTA PANEL */
-.center-hub { -webkit-flex: 0 0 18%; flex: 0 0 18%; width: 18%; height: 100%; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; padding: 6px 0; }
+.center-hub { -webkit-flex: 0 0 18%; flex: 0 0 18%; width: 18%; -webkit-align-self: stretch; align-self: stretch; height: 100%; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; padding: 6px 0; }
 .shot-clock-wrapper { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; }
 #shot-clock-pause-btn { border-radius: 16px; border: 1px solid #444; background: rgba(30, 30, 30, 0.9); color: white; font-size: 13px; font-weight: bold; padding: 4px 14px; margin-bottom: 6px; cursor: pointer; letter-spacing: 1px; }
 .shot-clock-container { position: relative; width: 140px; height: 140px; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; cursor: pointer; }
@@ -127,6 +128,7 @@ body.view-segment .score-card::before { display: none; }
 .bottom-bar { height: auto; -webkit-flex-shrink: 0; flex-shrink: 0; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; padding: 0 16px 2vh; -webkit-align-items: center; align-items: center; width: 100%; }
 .stat-group { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; -webkit-flex: 1; flex: 1; min-width: 0; width: 100%; }
 .stat-row-top { width: 100%; display: -webkit-flex; display: flex; -webkit-flex-direction: row; flex-direction: row; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; -webkit-align-items: center; align-items: center; line-height: 1; }
+.stat-row-top .stat-item { -webkit-flex: 1; flex: 1; margin: 0; }
 .stat-row-bottom { width: 100%; display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; align-items: center; text-align: center; margin: 1.4vh auto 0; line-height: 1; }
 .stat-item { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; white-space: nowrap; margin: 0 4px; }
 .stat-label { font-size: 1.6vh; color: #666; font-weight: 800; letter-spacing: 1px; line-height: 1; margin-bottom: 4px; }
@@ -144,12 +146,12 @@ body.view-segment .score-card::before { display: none; }
     .top-info { height: auto; padding: 2vh 12px 0; }
     #timer-display { font-size: 42px; }
     .display-name, .target-badge { font-size: 34px; }
-    .score-card { height: 44vh; max-height: 336px; padding: 4px 6px; }
-    .flap-digit { font-size: 296px; padding: 4px 6px; margin-right: 4px; }
-    .seg-digit { width: 158px; height: 296px; padding: 8px 6px; margin-right: 4px; }
+    .score-card { height: 43vh; max-height: 344px; padding: 4px 6px; }
+    .flap-digit { font-size: 310px; padding: 4px 6px; margin-right: 4px; }
+    .seg-digit { width: 170px; height: 312px; padding: 8px 6px; margin-right: 4px; }
     .seg-digit.seg-sm { width: 4.8vh; height: 8.4vh; padding: 3px; margin-right: 3px; }
-    .btn-timeout { width: 100%; height: 38px; font-size: 26px; margin: 6px 0 0 0; }
-    .center-hub { height: 100%; padding: 6px 0; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; }
+    .btn-timeout { width: 100%; height: 50px; font-size: 36px; margin: 6px 0 0 0; }
+    .center-hub { -webkit-align-self: stretch; align-self: stretch; height: 100%; padding: 6px 0; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; }
     .center-stat { margin: 0; }
     .shot-clock-container { width: 128px; height: 128px; }
     .shot-clock-svg { width: 128px; height: 128px; }
@@ -162,20 +164,20 @@ body.view-segment .score-card::before { display: none; }
 }
 
 @media (max-height: 768px) and (orientation: landscape) {
-    .top-info { padding: 1.4vh 12px 0; }
-    .score-card { height: 37vh; max-height: 296px; padding: 4px 6px; }
-    .flap-digit { font-size: 235px; font-size: clamp(195px, 31vh, 270px); }
-    .seg-digit { width: 18vh; max-width: 144px; height: 33vh; max-height: 266px; }
+    .top-info { padding: 1.2vh 12px 0; }
+    .score-card { height: 38vh; max-height: 300px; padding: 4px 6px; }
+    .flap-digit { font-size: 265px; font-size: clamp(215px, 34vh, 285px); }
+    .seg-digit { width: 19.5vh; max-width: 158px; height: 35vh; max-height: 276px; }
     .seg-digit.seg-sm { width: 4.3vh; height: 7.4vh; }
-    .btn-timeout { height: 32px; font-size: 24px; margin-top: 5px; }
-    .center-hub { padding: 4px 0; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; }
+    .btn-timeout { height: 48px; font-size: 34px; margin-top: 6px; }
+    .center-hub { -webkit-align-self: stretch; align-self: stretch; padding: 4px 0; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; }
     .center-stat { margin: 0; }
     .shot-clock-container { width: 112px; height: 112px; }
     .shot-clock-svg { width: 112px; height: 112px; }
     #shot-clock-display, .run-val, .inn-val { font-size: 7.4vh; font-size: clamp(46px, 7.4vh, 62px); }
-    .bottom-bar { padding: 0 12px 1.2vh; }
-    .stat-row-bottom { margin: 1vh auto 0; }
-    .stat-val { font-size: 5.2vh; font-size: clamp(30px, 5.2vh, 44px); }
+    .bottom-bar { padding: 0 12px 1vh; }
+    .stat-row-bottom { margin: 0.8vh auto 0; }
+    .stat-val { font-size: 5vh; font-size: clamp(28px, 5vh, 42px); }
 }
 
 @media (-webkit-min-device-pixel-ratio: 2) and (max-width: 1024px) {
