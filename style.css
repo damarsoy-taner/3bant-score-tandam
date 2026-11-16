@@ -104,7 +104,9 @@ body { background-color: var(--bg-color); color: white; font-family: 'Segoe UI',
 .p1-card .seg-vane.on, #inn-display .seg-vane.on { fill: #F2F0E6; }
 .p2-card .seg-vane.on, #run-display .seg-vane.on { fill: #F5C518; }
 
-.btn-timeout { width: 50%; max-width: 190px; height: 48px; -webkit-flex-shrink: 0; flex-shrink: 0; -webkit-align-self: center; align-self: center; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; padding: 0; line-height: 1; background: #ff4444; border: none; border-radius: 14px; color: white; font-size: 36px; font-weight: bold; z-index: 200; cursor: pointer; margin: 10px auto 0 auto; }
+.score-card .flap-digit, .score-card .seg-digit { -webkit-transform: scaleY(1.20); transform: scaleY(1.20); -webkit-transform-origin: center center; transform-origin: center center; }
+
+.btn-timeout { width: 50%; max-width: 190px; height: 48px; -webkit-flex-shrink: 0; flex-shrink: 0; -webkit-align-self: center; align-self: center; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; text-align: center; padding: 0; line-height: 1; background: #ff4444; border: none; border-radius: 14px; color: white; font-size: 36px; font-weight: bold; z-index: 200; cursor: pointer; margin: 10px auto 0 auto; }
 
 /* ORTA PANEL */
 .center-hub { -webkit-flex: 0 0 18%; flex: 0 0 18%; width: 18%; height: 100%; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-between; justify-content: space-between; padding: 12px 0; }

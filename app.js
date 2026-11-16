@@ -670,7 +670,6 @@ function useTimeout(p, e) {
     if (turn === p && config.timeouts[p] > 0) {
         saveSnapshot();
         config.timeouts[p]--; currentShot += 30;
-        if (config.shotActive) { shotClockPaused = true; updatePauseBtn(); }
         updateUI();
     }
 }
