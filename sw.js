@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bilardo-v109';
+const CACHE_NAME = 'bilardo-scoreboard-v7';
 const ASSETS = [
     './',
     './index.html',

@@ -199,7 +199,6 @@ function setViewMode(mode) {
     const segBtn = document.getElementById('btn-view-seg');
     if (flapBtn) flapBtn.classList.toggle('active', config.viewMode === 'flap');
     if (segBtn) segBtn.classList.toggle('active', config.viewMode === 'segment');
-    if (document.body) document.body.classList.toggle('view-segment', config.viewMode === 'segment');
     prevRenderedScores = { s1: null, s2: null };
 }
 (function initViewMode() {
@@ -277,18 +276,30 @@ function tick() {
 }
 function commitRun(p, run) {
     if (run <= 0) return;
-    const top = [highRuns[p].hr1, highRuns[p].hr2, highRuns[p].hr3, run].sort((a, b) => b - a);
-    highRuns[p].hr1 = top[0];
-    highRuns[p].hr2 = top[1];
-    highRuns[p].hr3 = top[2];
+    if (run > highRuns[p].hr1) {
+        highRuns[p].hr3 = highRuns[p].hr2;
+        highRuns[p].hr2 = highRuns[p].hr1;
+        highRuns[p].hr1 = run;
+    } else if (run > highRuns[p].hr2) {
+        highRuns[p].hr3 = highRuns[p].hr2;
+        highRuns[p].hr2 = run;
+    } else if (run > highRuns[p].hr3) {
+        highRuns[p].hr3 = run;
+    }
 }
 function getPlayerHighRuns(p) {
     let { hr1, hr2, hr3 } = highRuns[p];
     if (!isPenaltyMode && p === turn && currentRun > 0) {
-        const top = [hr1, hr2, hr3, currentRun].sort((a, b) => b - a);
-        hr1 = top[0];
-        hr2 = top[1];
-        hr3 = top[2];
+        if (currentRun > hr1) {
+            hr3 = hr2;
+            hr2 = hr1;
+            hr1 = currentRun;
+        } else if (currentRun > hr2) {
+            hr3 = hr2;
+            hr2 = currentRun;
+        } else if (currentRun > hr3) {
+            hr3 = currentRun;
+        }
     }
     return { hr1, hr2, hr3 };
 }
@@ -639,16 +650,10 @@ function updateUI() {
 function updateClockUI() {
     const sd = document.getElementById('shot-clock-display');
     const circle = document.getElementById('progress-circle');
-    const isWarn = currentShot <= config.warnTime;
-    sd.classList.toggle('warn', isWarn);
-    if (config.viewMode === 'segment') {
-        renderSevenSegment('shot-clock-display', currentShot, true);
-    } else {
-        sd.innerText = currentShot;
-    }
+    sd.innerText = currentShot;
     let offset = CIRC - (currentShot / config.shotTime) * CIRC;
     circle.style.strokeDashoffset = offset;
-    circle.style.stroke = isWarn ? "red" : "#00ff00";
+    circle.style.stroke = currentShot <= config.warnTime ? "red" : "#00ff00";
 }
 function togglePause(e) {
     if (!guardTouchEvent(e)) return;
