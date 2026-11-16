@@ -184,3 +184,40 @@ body.view-segment .score-card::before { display: none; }
     body { width: 100vw; height: 100vh; overflow: hidden; }
     .main-stage { padding: 4px 12px; }
 }
+
+/* iPad 4 (iOS 10.3.3 Safari) & KIRMIZI + BUTONU / ORTA SÜTUN ÖNCELİKLİ DÜZENLEME */
+.btn-timeout {
+    width: 50% !important;
+    max-width: 180px !important;
+    margin: 10px auto 0 auto !important;
+    display: -webkit-flex !important;
+    display: flex !important;
+    -webkit-align-items: center !important;
+    align-items: center !important;
+    -webkit-justify-content: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+}
+.btn-timeout-icon {
+    position: static !important;
+    margin: 0 auto !important;
+    display: block !important;
+    line-height: 1 !important;
+}
+.center-hub {
+    display: -webkit-flex !important;
+    display: flex !important;
+    -webkit-flex-direction: column !important;
+    flex-direction: column !important;
+    -webkit-justify-content: space-between !important;
+    justify-content: space-between !important;
+    -webkit-align-items: center !important;
+    align-items: center !important;
+    height: 100% !important;
+    padding: 14px 0 !important;
+}
+.center-hub > *, .shot-clock-wrapper, .center-stat {
+    margin: 0 !important;
+}
