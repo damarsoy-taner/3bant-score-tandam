@@ -276,3 +276,17 @@ body.view-segment .score-card::before { display: none; }
     -webkit-transform-origin: center center !important;
     transform-origin: center center !important;
 }
+
+/* HR1, HR2, HR3 VE AVG FONT BÜYÜTME (iOS 10.3.3 UYUMLU) */
+.stat-row-top .stat-val {
+    font-size: 4.8vh !important;
+}
+.stat-row-top .stat-label {
+    font-size: 1.7vh !important;
+}
+.stat-row-bottom .stat-val {
+    font-size: 5.2vh !important;
+}
+.stat-row-bottom .stat-label {
+    font-size: 1.8vh !important;
+}
