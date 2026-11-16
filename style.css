@@ -108,10 +108,10 @@ body.view-segment .score-card::before { display: none; }
 #shot-clock-display .seg-vane.on { fill: #00ff00; stroke: #00ff00; }
 #shot-clock-display.warn .seg-vane.on { fill: #ff4444; stroke: #ff4444; }
 
-.btn-timeout { width: 100%; height: 54px; -webkit-flex-shrink: 0; flex-shrink: 0; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; background: #ff4444; border: none; border-radius: 14px; color: white; font-size: 40px; font-weight: bold; line-height: 1; z-index: 200; cursor: pointer; margin: 8px 0 0 0; padding: 0; }
+.btn-timeout { width: 100%; height: 54px; -webkit-flex-shrink: 0; flex-shrink: 0; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; text-align: center; background: #ff4444; border: none; border-radius: 14px; color: white; font-size: 40px; font-weight: bold; line-height: 54px; z-index: 200; cursor: pointer; margin: 8px 0 0 0; padding: 0; }
 
 /* ORTA PANEL */
-.center-hub { -webkit-flex: 0 0 18%; flex: 0 0 18%; width: 18%; -webkit-align-self: stretch; align-self: stretch; height: 100%; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; padding: 6px 0; }
+.center-hub { -webkit-flex: 0 0 18%; flex: 0 0 18%; width: 18%; -webkit-align-self: stretch; align-self: stretch; height: auto; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; padding: 6px 0; }
 .shot-clock-wrapper { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; }
 #shot-clock-pause-btn { border-radius: 16px; border: 1px solid #444; background: rgba(30, 30, 30, 0.9); color: white; font-size: 13px; font-weight: bold; padding: 4px 14px; margin-bottom: 6px; cursor: pointer; letter-spacing: 1px; }
 .shot-clock-container { position: relative; width: 140px; height: 140px; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; cursor: pointer; }
@@ -150,8 +150,8 @@ body.view-segment .score-card::before { display: none; }
     .flap-digit { font-size: 310px; padding: 4px 6px; margin-right: 4px; }
     .seg-digit { width: 170px; height: 312px; padding: 8px 6px; margin-right: 4px; }
     .seg-digit.seg-sm { width: 4.8vh; height: 8.4vh; padding: 3px; margin-right: 3px; }
-    .btn-timeout { width: 100%; height: 50px; font-size: 36px; margin: 6px 0 0 0; }
-    .center-hub { -webkit-align-self: stretch; align-self: stretch; height: 100%; padding: 6px 0; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; }
+    .btn-timeout { width: 100%; height: 50px; font-size: 36px; line-height: 50px; margin: 6px 0 0 0; }
+    .center-hub { -webkit-align-self: stretch; align-self: stretch; height: auto; padding: 6px 0; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; }
     .center-stat { margin: 0; }
     .shot-clock-container { width: 128px; height: 128px; }
     .shot-clock-svg { width: 128px; height: 128px; }
@@ -169,8 +169,8 @@ body.view-segment .score-card::before { display: none; }
     .flap-digit { font-size: 265px; font-size: clamp(215px, 34vh, 285px); }
     .seg-digit { width: 19.5vh; max-width: 158px; height: 35vh; max-height: 276px; }
     .seg-digit.seg-sm { width: 4.3vh; height: 7.4vh; }
-    .btn-timeout { height: 48px; font-size: 34px; margin-top: 6px; }
-    .center-hub { -webkit-align-self: stretch; align-self: stretch; padding: 4px 0; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; }
+    .btn-timeout { height: 48px; font-size: 34px; line-height: 48px; margin-top: 6px; }
+    .center-hub { -webkit-align-self: stretch; align-self: stretch; height: auto; padding: 4px 0; -webkit-justify-content: space-around; justify-content: space-around; justify-content: space-evenly; }
     .center-stat { margin: 0; }
     .shot-clock-container { width: 112px; height: 112px; }
     .shot-clock-svg { width: 112px; height: 112px; }
