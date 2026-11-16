@@ -45,6 +45,15 @@ body { background-color: var(--bg-color); color: white; font-family: 'Segoe UI',
 .stats-action-btn.btn-green { background: var(--btn-green); color: #fff; border-color: #fff; }
 .stats-action-btn.btn-danger { background: #5a1515; color: #ff9999; border-color: #993333; }
 .stats-action-btn.btn-close-stats { background: #333; color: #fff; border-color: #777; min-width: 110px; }
+.stats-status-msg { min-height: 20px; text-align: center; font-size: 14px; font-weight: bold; color: #ffd54f; margin-top: 6px; }
+.armed-confirm { background: #b71c1c !important; color: #ffffff !important; border-color: #ff8a80 !important; }
+.chip-del.armed-confirm { width: auto !important; padding: 0 6px !important; border-radius: 8px !important; font-size: 11px !important; }
+
+#custom-prompt-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 8000; display: none; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; padding: 20px; }
+.custom-prompt-card { width: 100%; max-width: 420px; background: #151515; border: 1px solid var(--gold); border-radius: 20px; padding: 18px; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; }
+.custom-prompt-card .setup-input { margin-top: 12px; width: 100%; }
+.custom-prompt-error { min-height: 18px; margin-top: 8px; color: #ff6b6b; font-size: 13px; font-weight: bold; text-align: center; }
+.custom-prompt-actions { display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center; margin-top: 10px; }
 
 .setup-section { display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center; width: 100%; max-width: 960px; margin-bottom: 15px; }
 .setup-card { background: #151515; border: 1px solid #333; border-radius: 20px; padding: 15px; -webkit-flex: 1; flex: 1; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; margin: 0 7px; }

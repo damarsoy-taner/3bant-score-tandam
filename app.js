@@ -147,32 +147,96 @@ function selectPlayerChip(side, playerName) {
 function onNameInputChange() {
     renderPlayerChips();
 }
+let pendingPromptSide = null;
+let statsStatusTimer = null;
+
+function checkTwoTapConfirm(btn, confirmLabel) {
+    if (!btn) return true;
+    if (btn.getAttribute('data-armed') === '1') {
+        clearTimeout(parseInt(btn.getAttribute('data-arm-timer'), 10));
+        btn.removeAttribute('data-armed');
+        btn.classList.remove('armed-confirm');
+        const orig = btn.getAttribute('data-orig-text');
+        if (orig !== null) btn.innerText = orig;
+        return true;
+    }
+    btn.setAttribute('data-orig-text', btn.innerText);
+    btn.setAttribute('data-armed', '1');
+    btn.innerText = confirmLabel || 'Emin misin? Tekrar Dokun';
+    btn.classList.add('armed-confirm');
+    const timerId = setTimeout(function() {
+        btn.removeAttribute('data-armed');
+        btn.classList.remove('armed-confirm');
+        const orig = btn.getAttribute('data-orig-text');
+        if (orig !== null) btn.innerText = orig;
+    }, 3500);
+    btn.setAttribute('data-arm-timer', String(timerId));
+    return false;
+}
 function addExtraPlayer(side) {
-    const raw = prompt('Yeni oyuncu adını girin:');
-    if (raw === null) return;
-    const clean = normalizePlayerName(raw);
-    if (!clean) return;
+    pendingPromptSide = (side === 1 || side === 2) ? side : null;
+    const overlay = document.getElementById('custom-prompt-overlay');
+    const input = document.getElementById('custom-prompt-input');
+    const errEl = document.getElementById('custom-prompt-error');
+    if (!overlay || !input) return;
+    if (errEl) errEl.innerText = '';
+    input.value = '';
+    overlay.style.display = 'flex';
+    setTimeout(function() {
+        try { input.focus(); } catch (e) {}
+    }, 50);
+}
+function closeCustomPrompt() {
+    const overlay = document.getElementById('custom-prompt-overlay');
+    if (overlay) overlay.style.display = 'none';
+    pendingPromptSide = null;
+}
+function submitCustomPrompt() {
+    const input = document.getElementById('custom-prompt-input');
+    const errEl = document.getElementById('custom-prompt-error');
+    if (!input) return;
+    const clean = normalizePlayerName(input.value);
+    if (!clean) {
+        if (errEl) errEl.innerText = 'Lütfen bir oyuncu adı girin.';
+        return;
+    }
     if (isCorePlayer(clean) || extraPlayers.indexOf(clean) !== -1) {
-        alert('Bu oyuncu zaten kayıtlı!');
+        if (errEl) errEl.innerText = 'Bu oyuncu zaten kayıtlı!';
         return;
     }
     extraPlayers.push(clean);
     saveExtraPlayers();
     ensureAllProfiles();
     savePlayerStats();
-    if (side === 1 || side === 2) {
-        const otherSide = side === 1 ? 2 : 1;
+    if (pendingPromptSide === 1 || pendingPromptSide === 2) {
+        const otherSide = pendingPromptSide === 1 ? 2 : 1;
         const otherName = normalizePlayerName(document.getElementById('name' + otherSide).value);
         if (otherName !== clean) {
-            document.getElementById('name' + side).value = clean;
+            document.getElementById('name' + pendingPromptSide).value = clean;
         }
     }
+    closeCustomPrompt();
     renderPlayerChips();
 }
+(function bindCustomPromptEnter() {
+    const input = document.getElementById('custom-prompt-input');
+    if (input) {
+        input.addEventListener('keydown', function(ev) {
+            if (ev.key === 'Enter' || ev.keyCode === 13) {
+                ev.preventDefault();
+                submitCustomPrompt();
+            } else if (ev.key === 'Escape' || ev.keyCode === 27) {
+                closeCustomPrompt();
+            }
+        });
+    }
+})();
 function deleteExtraPlayer(name, e) {
     if (e && e.stopPropagation) e.stopPropagation();
     if (isCorePlayer(name)) return;
-    if (!confirm(name + ' oyuncusu silinsin mi?')) return;
+    const btn = (e && (e.currentTarget || e.target)) ? (e.currentTarget || e.target) : null;
+    const label = (btn && btn.classList && btn.classList.contains('chip-del')) ? 'Sil?' : 'Emin misin? Tekrar Dokun';
+    if (!checkTwoTapConfirm(btn, label)) return;
     extraPlayers = extraPlayers.filter(p => p !== name);
     saveExtraPlayers();
     const inp1 = document.getElementById('name1');
@@ -355,7 +419,10 @@ function getRunPitch(run) {
     return Math.min(1.22, 1.12 + Math.max(0, run - 1) * 0.015);
 }
 
-function resetMatch() { if(confirm("Mevcut maç silinsin mi?")) location.reload(); }
+function resetMatch(btn) {
+    if (!checkTwoTapConfirm(btn, 'Emin misin? Tekrar Dokun')) return;
+    location.reload();
+}
 function setMode(m) {
     config.mode = m;
     document.getElementById('btn-mode-standard').classList.toggle('active', m === 'standard');
@@ -1023,26 +1090,41 @@ function renderH2H() {
         <div class="h2h-avg-line">Toplam Maç: ${recA.matches} &nbsp;|&nbsp; ${a} Ort: ${avgA} &nbsp;|&nbsp; ${b} Ort: ${avgB}</div>
     `;
 }
-function undoLastMatchStats() {
+function setStatsStatus(msg) {
+    const el = document.getElementById('stats-status-msg');
+    if (!el) return;
+    if (statsStatusTimer) {
+        clearTimeout(statsStatusTimer);
+        statsStatusTimer = null;
+    }
+    el.innerText = msg || '';
+    if (msg) {
+        statsStatusTimer = setTimeout(function() {
+            el.innerText = '';
+            statsStatusTimer = null;
+        }, 4000);
+    }
+}
+function undoLastMatchStats(btn) {
     let raw = null;
     try { raw = localStorage.getItem(LAST_MATCH_STATS_KEY); } catch (e) {}
     if (!raw) {
-        alert('Geri alınacak son maç kaydı bulunamadı.');
+        setStatsStatus('Geri alınacak son maç kaydı bulunamadı.');
         return;
     }
-    if (!confirm('Son kaydedilen maç istatistiği geri alınsın mı?')) return;
+    if (!checkTwoTapConfirm(btn, 'Emin misin? Tekrar Dokun')) return;
     try {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object') {
             playerStats = parsed;
             ensureAllProfiles();
             savePlayerStats();
-            localStorage.removeItem(LAST_MATCH_STATS_KEY);
+            try { localStorage.removeItem(LAST_MATCH_STATS_KEY); } catch (err) {}
             renderStatsOverlay();
-            alert('Son maç kaydı geri alındı.');
+            setStatsStatus('Son maç kaydı geri alındı.');
         }
     } catch (e) {
-        alert('Son maç yedeği okunamadı.');
+        setStatsStatus('Son maç yedeği okunamadı.');
     }
 }
 function copyStatsBackup() {
@@ -1057,25 +1139,29 @@ function copyStatsBackup() {
     const ta = document.getElementById('backup-json-input');
     if (ta) ta.value = payload;
 
-    let copied = false;
     if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
         navigator.clipboard.writeText(payload).then(() => {
-            alert('Yedek JSON panoya kopyalandı.');
+            setStatsStatus('Yedek JSON panoya kopyalandı.');
         }).catch(() => {
-            fallbackCopyText(payload);
+            if (fallbackCopyText(payload)) {
+                setStatsStatus('Yedek JSON panoya kopyalandı.');
+            } else {
+                showRestoreBox();
+                if (ta) { ta.focus(); ta.select(); }
+                setStatsStatus('Otomatik kopyalama desteklenmiyor; kutudan kopyalayabilirsiniz.');
+            }
         });
         return;
     }
-    copied = fallbackCopyText(payload);
-    if (copied) {
-        alert('Yedek JSON panoya kopyalandı.');
+    if (fallbackCopyText(payload)) {
+        setStatsStatus('Yedek JSON panoya kopyalandı.');
     } else {
         showRestoreBox();
         if (ta) {
             ta.focus();
             ta.select();
         }
-        alert('Otomatik kopyalama desteklenmiyor; aşağıdaki kutudan JSON metnini kopyalayabilirsiniz.');
+        setStatsStatus('Otomatik kopyalama desteklenmiyor; kutudan kopyalayabilirsiniz.');
     }
 }
 function fallbackCopyText(text) {
@@ -1108,13 +1194,13 @@ function hideRestoreBox() {
 function confirmRestoreBackup() {
     const ta = document.getElementById('backup-json-input');
     if (!ta || !ta.value.trim()) {
-        alert('Lütfen JSON yedek metnini yapıştırın.');
+        setStatsStatus('Lütfen JSON yedek metnini yapıştırın.');
         return;
     }
     try {
         const parsed = JSON.parse(ta.value.trim());
         if (!parsed || typeof parsed !== 'object' || !parsed.playerStats || typeof parsed.playerStats !== 'object') {
-            alert('Geçersiz yedek formatı.');
+            setStatsStatus('Geçersiz yedek formatı.');
             return;
         }
         if (Array.isArray(parsed.extraPlayers)) {
@@ -1128,16 +1214,17 @@ function confirmRestoreBackup() {
         hideRestoreBox();
         renderPlayerChips();
         renderStatsOverlay();
-        alert('Yedek başarıyla yüklendi.');
+        setStatsStatus('Yedek başarıyla yüklendi.');
     } catch (e) {
-        alert('JSON okunamadı. Lütfen geçerli bir yedek metni girin.');
+        setStatsStatus('JSON okunamadı. Geçerli bir yedek metni girin.');
     }
 }
-function resetAllStats() {
-    if (!confirm('TÜM oyuncu istatistikleri sıfırlansın mı? Bu işlem geri alınamaz!')) return;
+function resetAllStats(btn) {
+    if (!checkTwoTapConfirm(btn, 'Emin misin? Tekrar Dokun')) return;
     playerStats = {};
     ensureAllProfiles();
     savePlayerStats();
     try { localStorage.removeItem(LAST_MATCH_STATS_KEY); } catch (e) {}
     renderStatsOverlay();
+    setStatsStatus('Tüm istatistikler sıfırlandı.');
 }

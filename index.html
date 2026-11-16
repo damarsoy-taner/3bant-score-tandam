@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="3-Bant Skor">
+    <meta name="apple-mobile-web-app-title" content="3-Bant Bilardo">
     <link rel="manifest" href="manifest.json">
     <title>3-Bant Bilardo Scoreboard Elite Pro V8</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -107,12 +107,25 @@
                 <button class="stats-action-btn" onclick="hideRestoreBox()">İPTAL</button>
             </div>
         </div>
+        <div id="stats-status-msg" class="stats-status-msg"></div>
         <div class="stats-actions">
-            <button id="btn-undo-match-stat" class="stats-action-btn" onclick="undoLastMatchStats()">SON MAÇ KAYDINI GERİ AL</button>
+            <button id="btn-undo-match-stat" class="stats-action-btn" onclick="undoLastMatchStats(this)">SON MAÇ KAYDINI GERİ AL</button>
             <button class="stats-action-btn" onclick="copyStatsBackup()">YEDEĞİ KOPYALA (JSON)</button>
             <button class="stats-action-btn" onclick="showRestoreBox()">YEDEKTEN YÜKLE</button>
-            <button class="stats-action-btn btn-danger" onclick="resetAllStats()">TÜM İSTATİSTİKLERİ SIFIRLA</button>
+            <button class="stats-action-btn btn-danger" onclick="resetAllStats(this)">TÜM İSTATİSTİKLERİ SIFIRLA</button>
             <button class="stats-action-btn btn-close-stats" onclick="closeStatsOverlay()">KAPAT</button>
+        </div>
+    </div>
+</div>
+
+<div id="custom-prompt-overlay">
+    <div class="custom-prompt-card">
+        <div id="custom-prompt-title" class="setup-title">YENİ OYUNCU EKLE</div>
+        <input type="text" id="custom-prompt-input" class="setup-input" placeholder="OYUNCU ADI" autocomplete="off" autocapitalize="characters">
+        <div id="custom-prompt-error" class="custom-prompt-error"></div>
+        <div class="custom-prompt-actions">
+            <button type="button" class="stats-action-btn btn-green" onclick="submitCustomPrompt()">EKLE</button>
+            <button type="button" class="stats-action-btn" onclick="closeCustomPrompt()">İPTAL</button>
         </div>
     </div>
 </div>
@@ -178,7 +191,7 @@
     </div>
     <div class="bottom-controls">
         <button id="btn-undo" class="bottom-ctrl-btn" onclick="undoLastAction(event)" ontouchend="undoLastAction(event)" disabled>↶ GERİ AL</button>
-        <button class="bottom-ctrl-btn" onclick="resetMatch()">YENİ MAÇ</button>
+        <button class="bottom-ctrl-btn" onclick="resetMatch(this)">YENİ MAÇ</button>
     </div>
     <div class="stat-group">
         <div class="stat-row-top">
