@@ -1,4 +1,4 @@
-let scores = { 1: 0, 2: 0 }, turn = 1, totalInnings = 1, highRuns = { 1: { hr1: 0, hr2: 0 }, 2: { hr1: 0, hr2: 0 } }, currentRun = 0;
+let scores = { 1: 0, 2: 0 }, turn = 1, totalInnings = 1, highRuns = { 1: { hr1: 0, hr2: 0, hr3: 0 }, 2: { hr1: 0, hr2: 0, hr3: 0 } }, currentRun = 0;
 let matchSecs = 0, currentShot, isPaused = true, shotClockPaused = false, timerInt, equalizingTurn = false;
 let isPenaltyMode = false, penaltyScores = { 1: 0, 2: 0 }, penaltyRound = 1;
 let historyStack = [];
@@ -276,24 +276,20 @@ function tick() {
 }
 function commitRun(p, run) {
     if (run <= 0) return;
-    if (run > highRuns[p].hr1) {
-        highRuns[p].hr2 = highRuns[p].hr1;
-        highRuns[p].hr1 = run;
-    } else if (run > highRuns[p].hr2) {
-        highRuns[p].hr2 = run;
-    }
+    const top = [highRuns[p].hr1, highRuns[p].hr2, highRuns[p].hr3, run].sort((a, b) => b - a);
+    highRuns[p].hr1 = top[0];
+    highRuns[p].hr2 = top[1];
+    highRuns[p].hr3 = top[2];
 }
 function getPlayerHighRuns(p) {
-    let { hr1, hr2 } = highRuns[p];
+    let { hr1, hr2, hr3 } = highRuns[p];
     if (!isPenaltyMode && p === turn && currentRun > 0) {
-        if (currentRun > hr1) {
-            hr2 = hr1;
-            hr1 = currentRun;
-        } else if (currentRun > hr2) {
-            hr2 = currentRun;
-        }
+        const top = [hr1, hr2, hr3, currentRun].sort((a, b) => b - a);
+        hr1 = top[0];
+        hr2 = top[1];
+        hr3 = top[2];
     }
-    return { hr1, hr2 };
+    return { hr1, hr2, hr3 };
 }
 function saveSnapshot() {
     historyStack.push({
@@ -301,8 +297,8 @@ function saveSnapshot() {
         turn: turn,
         totalInnings: totalInnings,
         highRuns: {
-            1: { hr1: highRuns[1].hr1, hr2: highRuns[1].hr2 },
-            2: { hr1: highRuns[2].hr1, hr2: highRuns[2].hr2 }
+            1: { hr1: highRuns[1].hr1, hr2: highRuns[1].hr2, hr3: highRuns[1].hr3 },
+            2: { hr1: highRuns[2].hr1, hr2: highRuns[2].hr2, hr3: highRuns[2].hr3 }
         },
         currentRun: currentRun,
         timeouts: { 1: config.timeouts[1], 2: config.timeouts[2] },
@@ -417,8 +413,8 @@ function endMatch(msg) {
     const p1HR = getPlayerHighRuns(1);
     const p2HR = getPlayerHighRuns(2);
     tbody.innerHTML = `
-        <tr><td>${config.name1}</td><td>${scores[1]}</td><td>${p1HR.hr1}</td><td>${p1HR.hr2}</td><td>${(scores[1]/totalInnings).toFixed(3)}</td></tr>
-        <tr><td>${config.name2}</td><td>${scores[2]}</td><td>${p2HR.hr1}</td><td>${p2HR.hr2}</td><td>${(scores[2]/(turn===1?Math.max(1,totalInnings-1):totalInnings)).toFixed(3)}</td></tr>
+        <tr><td>${config.name1}</td><td>${scores[1]}</td><td>${p1HR.hr1}</td><td>${p1HR.hr2}</td><td>${p1HR.hr3}</td><td>${(scores[1]/totalInnings).toFixed(3)}</td></tr>
+        <tr><td>${config.name2}</td><td>${scores[2]}</td><td>${p2HR.hr1}</td><td>${p2HR.hr2}</td><td>${p2HR.hr3}</td><td>${(scores[2]/(turn===1?Math.max(1,totalInnings-1):totalInnings)).toFixed(3)}</td></tr>
     `;
     document.getElementById('end-match-overlay').style.display = 'flex';
 }
@@ -618,8 +614,10 @@ function updateUI() {
     const p2HR = getPlayerHighRuns(2);
     document.getElementById('hr1-1').innerText = p1HR.hr1;
     document.getElementById('hr1-2').innerText = p1HR.hr2;
+    document.getElementById('hr1-3').innerText = p1HR.hr3;
     document.getElementById('hr2-1').innerText = p2HR.hr1;
     document.getElementById('hr2-2').innerText = p2HR.hr2;
+    document.getElementById('hr2-3').innerText = p2HR.hr3;
     document.getElementById('avg1').innerText = (scores[1] / totalInnings).toFixed(3);
     let p2Inn = (turn === 1) ? Math.max(1, totalInnings - 1) : totalInnings;
     document.getElementById('avg2').innerText = (scores[2] / p2Inn).toFixed(3);
