@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bilardo-v105';
+const CACHE_NAME = 'bilardo-v108';
 const ASSETS = [
     './',
     './index.html',

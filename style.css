@@ -264,3 +264,15 @@ body.view-segment .score-card::before { display: none; }
     margin-top: 1.2vh !important;
     text-align: center !important;
 }
+
+/* ANA SKOR RAKAMLARI %30 - %35 DİKEY UZATMA (7-SEGMENT & SPLIT-FLAP) */
+#s1.score-val, #s2.score-val {
+    max-height: none !important;
+}
+#s1 .flap-digit, #s2 .flap-digit,
+#s1 .seg-digit, #s2 .seg-digit {
+    -webkit-transform: scaleY(1.32) !important;
+    transform: scaleY(1.32) !important;
+    -webkit-transform-origin: center center !important;
+    transform-origin: center center !important;
+}
