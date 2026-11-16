@@ -20,8 +20,10 @@
     <div class="setup-section">
         <div class="setup-card">
             <div class="setup-title">OYUNCULAR</div>
-            <div class="setup-group"><span class="setup-label">BEYAZ</span><input type="text" id="name1" class="setup-input" value="BEYAZ"></div>
-            <div class="setup-group"><span class="setup-label">SARI</span><input type="text" id="name2" class="setup-input" value="SARI"></div>
+            <div class="setup-group"><span class="setup-label">BEYAZ</span><input type="text" id="name1" class="setup-input" value="BEYAZ" oninput="onNameInputChange(1)"></div>
+            <div id="chips-1" class="player-chips"></div>
+            <div class="setup-group"><span class="setup-label">SARI</span><input type="text" id="name2" class="setup-input" value="SARI" oninput="onNameInputChange(2)"></div>
+            <div id="chips-2" class="player-chips"></div>
         </div>
         <div class="setup-card">
             <div class="setup-title">MAÇ MODU</div>
@@ -61,6 +63,58 @@
         </div>
     </div>
     <button class="btn-start-big" onclick="startMatch()">MAÇI BAŞLAT</button>
+    <button class="btn-stats-open" onclick="openStatsOverlay()">PUAN DURUMU &amp; İSTATİSTİKLER</button>
+</div>
+
+<div id="stats-overlay">
+    <div class="stats-modal-inner">
+        <h1 class="stats-modal-title">PUAN DURUMU &amp; İSTATİSTİKLER</h1>
+        <div class="stats-panel-card">
+            <div class="setup-title">GENEL LİG TABLOSU</div>
+            <div class="stats-table-wrap">
+                <table class="league-table">
+                    <thead>
+                        <tr>
+                            <th>OYUNCU</th>
+                            <th>O</th>
+                            <th>G</th>
+                            <th>M</th>
+                            <th>%</th>
+                            <th>GENEL AVG</th>
+                            <th>BEST AVG</th>
+                            <th>MAX HR</th>
+                            <th>İŞLEM</th>
+                        </tr>
+                    </thead>
+                    <tbody id="league-stats-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="stats-panel-card">
+            <div class="setup-title">İKİLİ REKABET (HEAD-TO-HEAD)</div>
+            <div class="h2h-controls">
+                <select id="h2h-player-a" class="setup-input h2h-select" onchange="renderH2H()"></select>
+                <span class="h2h-vs">VS</span>
+                <select id="h2h-player-b" class="setup-input h2h-select" onchange="renderH2H()"></select>
+            </div>
+            <div id="h2h-result" class="h2h-result"></div>
+        </div>
+        <div id="backup-restore-box" class="stats-panel-card" style="display: none;">
+            <div class="setup-title">JSON YEDEKTEN YÜKLE</div>
+            <textarea id="backup-json-input" class="backup-textarea" placeholder="JSON yedeğini buraya yapıştırın..."></textarea>
+            <div class="stats-actions">
+                <button class="stats-action-btn btn-green" onclick="confirmRestoreBackup()">YEDEĞİ UYGULA</button>
+                <button class="stats-action-btn" onclick="hideRestoreBox()">İPTAL</button>
+            </div>
+        </div>
+        <div class="stats-actions">
+            <button id="btn-undo-match-stat" class="stats-action-btn" onclick="undoLastMatchStats()">SON MAÇ KAYDINI GERİ AL</button>
+            <button class="stats-action-btn" onclick="copyStatsBackup()">YEDEĞİ KOPYALA (JSON)</button>
+            <button class="stats-action-btn" onclick="showRestoreBox()">YEDEKTEN YÜKLE</button>
+            <button class="stats-action-btn btn-danger" onclick="resetAllStats()">TÜM İSTATİSTİKLERİ SIFIRLA</button>
+            <button class="stats-action-btn btn-close-stats" onclick="closeStatsOverlay()">KAPAT</button>
+        </div>
+    </div>
 </div>
 
 <div id="end-match-overlay">

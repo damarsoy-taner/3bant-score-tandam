@@ -13,6 +13,182 @@ const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 
 let lastActionTime = 0;
 let turnLockUntil = 0;
 
+const CORE_PLAYERS = ['TANER', 'ONUR', 'SÜHEYL', 'MELİH', 'ESİN', 'MİSAFİR'];
+const EXTRA_PLAYERS_KEY = 'bilardo_ekstra_oyuncular_v1';
+const STATS_STORAGE_KEY = 'bilardo_oyuncu_stats_v1';
+const LAST_MATCH_STATS_KEY = 'bilardo_son_mac_yedek_v1';
+let extraPlayers = [];
+let playerStats = {};
+let matchStatsRecorded = false;
+
+function normalizePlayerName(name) {
+    if (!name) return '';
+    const trimmed = String(name).trim().replace(/\s+/g, ' ');
+    try {
+        return trimmed.toLocaleUpperCase('tr-TR');
+    } catch (e) {
+        return trimmed.toUpperCase();
+    }
+}
+function isCorePlayer(name) {
+    return CORE_PLAYERS.indexOf(name) !== -1;
+}
+function getRegisteredPlayers() {
+    return CORE_PLAYERS.concat(extraPlayers);
+}
+function createEmptyProfile() {
+    return { matches: 0, wins: 0, losses: 0, totalPoints: 0, totalInnings: 0, bestAvg: 0, maxHr: 0, h2h: {} };
+}
+function loadExtraPlayers() {
+    try {
+        const raw = localStorage.getItem(EXTRA_PLAYERS_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(parsed)) {
+            extraPlayers = parsed.map(normalizePlayerName).filter((n, idx, arr) => n && !isCorePlayer(n) && arr.indexOf(n) === idx);
+        } else {
+            extraPlayers = [];
+        }
+    } catch (e) {
+        extraPlayers = [];
+    }
+}
+function saveExtraPlayers() {
+    try { localStorage.setItem(EXTRA_PLAYERS_KEY, JSON.stringify(extraPlayers)); } catch (e) {}
+}
+function ensureAllProfiles() {
+    const roster = getRegisteredPlayers();
+    roster.forEach(name => {
+        if (!playerStats[name] || typeof playerStats[name] !== 'object') {
+            playerStats[name] = createEmptyProfile();
+        } else {
+            const p = playerStats[name];
+            if (typeof p.matches !== 'number') p.matches = 0;
+            if (typeof p.wins !== 'number') p.wins = 0;
+            if (typeof p.losses !== 'number') p.losses = 0;
+            if (typeof p.totalPoints !== 'number') p.totalPoints = 0;
+            if (typeof p.totalInnings !== 'number') p.totalInnings = 0;
+            if (typeof p.bestAvg !== 'number') p.bestAvg = 0;
+            if (typeof p.maxHr !== 'number') p.maxHr = 0;
+            if (!p.h2h || typeof p.h2h !== 'object') p.h2h = {};
+        }
+    });
+}
+function loadPlayerStats() {
+    try {
+        const raw = localStorage.getItem(STATS_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : {};
+        playerStats = (parsed && typeof parsed === 'object') ? parsed : {};
+    } catch (e) {
+        playerStats = {};
+    }
+    ensureAllProfiles();
+}
+function savePlayerStats() {
+    try { localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(playerStats)); } catch (e) {}
+}
+function escapeAttr(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function renderPlayerChips() {
+    const n1 = normalizePlayerName(document.getElementById('name1').value);
+    const n2 = normalizePlayerName(document.getElementById('name2').value);
+    const fixedFive = CORE_PLAYERS.slice(0, 5);
+    const ordered = fixedFive.concat(extraPlayers).concat(['MİSAFİR']);
+
+    [1, 2].forEach(side => {
+        const container = document.getElementById('chips-' + side);
+        if (!container) return;
+        const myName = side === 1 ? n1 : n2;
+        const otherName = side === 1 ? n2 : n1;
+        container.innerHTML = '';
+
+        ordered.forEach(name => {
+            const isExtra = !isCorePlayer(name);
+            const isGuest = name === 'MİSAFİR';
+            const isActive = myName === name;
+            const isLocked = otherName === name;
+
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'player-chip' + (isGuest ? ' guest-chip' : '') + (isActive ? ' active' : '') + (isLocked ? ' locked' : '');
+            chip.disabled = isLocked;
+            chip.onclick = function() { selectPlayerChip(side, name); };
+
+            const labelSpan = document.createElement('span');
+            labelSpan.innerText = name;
+            chip.appendChild(labelSpan);
+
+            if (isExtra) {
+                const delSpan = document.createElement('span');
+                delSpan.className = 'chip-del';
+                delSpan.innerText = '×';
+                delSpan.title = name + ' sil';
+                delSpan.onclick = function(ev) { deleteExtraPlayer(name, ev); };
+                chip.appendChild(delSpan);
+            }
+            container.appendChild(chip);
+        });
+
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'player-chip add-chip';
+        addBtn.innerText = '+ OYUNCU EKLE';
+        addBtn.onclick = function() { addExtraPlayer(side); };
+        container.appendChild(addBtn);
+    });
+}
+function selectPlayerChip(side, playerName) {
+    const otherSide = side === 1 ? 2 : 1;
+    const otherName = normalizePlayerName(document.getElementById('name' + otherSide).value);
+    if (otherName === playerName) return;
+    document.getElementById('name' + side).value = playerName;
+    renderPlayerChips();
+}
+function onNameInputChange() {
+    renderPlayerChips();
+}
+function addExtraPlayer(side) {
+    const raw = prompt('Yeni oyuncu adını girin:');
+    if (raw === null) return;
+    const clean = normalizePlayerName(raw);
+    if (!clean) return;
+    if (isCorePlayer(clean) || extraPlayers.indexOf(clean) !== -1) {
+        alert('Bu oyuncu zaten kayıtlı!');
+        return;
+    }
+    extraPlayers.push(clean);
+    saveExtraPlayers();
+    ensureAllProfiles();
+    savePlayerStats();
+    if (side === 1 || side === 2) {
+        const otherSide = side === 1 ? 2 : 1;
+        const otherName = normalizePlayerName(document.getElementById('name' + otherSide).value);
+        if (otherName !== clean) {
+            document.getElementById('name' + side).value = clean;
+        }
+    }
+    renderPlayerChips();
+}
+function deleteExtraPlayer(name, e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (isCorePlayer(name)) return;
+    if (!confirm(name + ' oyuncusu silinsin mi?')) return;
+    extraPlayers = extraPlayers.filter(p => p !== name);
+    saveExtraPlayers();
+    const inp1 = document.getElementById('name1');
+    const inp2 = document.getElementById('name2');
+    if (inp1 && normalizePlayerName(inp1.value) === name) inp1.value = 'BEYAZ';
+    if (inp2 && normalizePlayerName(inp2.value) === name) inp2.value = 'SARI';
+    renderPlayerChips();
+    const statsOverlay = document.getElementById('stats-overlay');
+    if (statsOverlay && statsOverlay.style.display === 'flex') {
+        renderStatsOverlay();
+    }
+}
+loadExtraPlayers();
+loadPlayerStats();
+renderPlayerChips();
+
 function guardTouchEvent(e) {
     if (e) {
         if (e.stopPropagation) e.stopPropagation();
@@ -227,6 +403,7 @@ function startMatch() {
     }
     equalizingTurn = false;
     isPenaltyMode = false;
+    matchStatsRecorded = false;
     penaltyScores = { 1: 0, 2: 0 };
     penaltyRound = 1;
     historyStack = [];
@@ -375,7 +552,7 @@ function handleInteraction(p, type, e) {
                 if (turn === 2 && penaltyScores[2] > penaltyScores[1]) {
                     updateUI();
                     speakText('Oyun bitti, ... Sarı kazandı', { pitch: 1.18, rate: 0.78 });
-                    endMatch(`TEBRİKLER ${config.name2} KAZANDI! (PENALTI)`);
+                    endMatch(`TEBRİKLER ${config.name2} KAZANDI! (PENALTI)`, 2);
                     return;
                 }
                 speakText(numberToTurkish(currentRun), { pitch: getRunPitch(currentRun), rate: 0.78 });
@@ -409,14 +586,14 @@ function checkMatchEnd() {
             if (equalizingTurn) {
                 startPenaltyMode();
             } else {
-                endMatch(`TEBRİKLER ${config.name2} KAZANDI!`);
+                endMatch(`TEBRİKLER ${config.name2} KAZANDI!`, 2);
             }
             return true;
         }
     }
     return false;
 }
-function endMatch(msg) {
+function endMatch(msg, winnerSide) {
     if (!isPenaltyMode) commitRun(turn, currentRun);
     currentRun = 0;
     isPaused = true; clearInterval(timerInt);
@@ -428,6 +605,7 @@ function endMatch(msg) {
         <tr><td>${config.name1}</td><td>${scores[1]}</td><td>${p1HR.hr1}</td><td>${p1HR.hr2}</td><td>${p1HR.hr3}</td><td>${(scores[1]/totalInnings).toFixed(3)}</td></tr>
         <tr><td>${config.name2}</td><td>${scores[2]}</td><td>${p2HR.hr1}</td><td>${p2HR.hr2}</td><td>${p2HR.hr3}</td><td>${(scores[2]/(turn===1?Math.max(1,totalInnings-1):totalInnings)).toFixed(3)}</td></tr>
     `;
+    recordCompletedMatchStats(winnerSide, p1HR.hr1, p2HR.hr1);
     document.getElementById('end-match-overlay').style.display = 'flex';
 }
 function changeTurn(skipSnapshot = false, isEqualizingStart = false, e = null) {
@@ -446,10 +624,10 @@ function changeTurn(skipSnapshot = false, isEqualizingStart = false, e = null) {
         } else {
             if (penaltyScores[2] > penaltyScores[1]) {
                 speakText('Oyun bitti, ... Sarı kazandı', { pitch: 1.18, rate: 0.78 });
-                endMatch(`TEBRİKLER ${config.name2} KAZANDI! (PENALTI)`);
+                endMatch(`TEBRİKLER ${config.name2} KAZANDI! (PENALTI)`, 2);
             } else if (penaltyScores[2] < penaltyScores[1]) {
                 speakText('Oyun bitti, ... Beyaz kazandı', { pitch: 1.18, rate: 0.78 });
-                endMatch(`TEBRİKLER ${config.name1} KAZANDI! (PENALTI)`);
+                endMatch(`TEBRİKLER ${config.name1} KAZANDI! (PENALTI)`, 1);
             } else {
                 penaltyRound++;
                 penaltyScores = { 1: 0, 2: 0 };
@@ -472,12 +650,12 @@ function changeTurn(skipSnapshot = false, isEqualizingStart = false, e = null) {
     }
     if (turn === 2) {
         if (equalizingTurn) {
-            endMatch(`TEBRİKLER ${config.name1} KAZANDI!`);
+            endMatch(`TEBRİKLER ${config.name1} KAZANDI!`, 1);
             return;
         }
         if (config.maxInnings !== null && totalInnings >= config.maxInnings) {
-            if (scores[1] > scores[2]) endMatch(`TEBRİKLER ${config.name1} KAZANDI!`);
-            else if (scores[2] > scores[1]) endMatch(`TEBRİKLER ${config.name2} KAZANDI!`);
+            if (scores[1] > scores[2]) endMatch(`TEBRİKLER ${config.name1} KAZANDI!`, 1);
+            else if (scores[2] > scores[1]) endMatch(`TEBRİKLER ${config.name2} KAZANDI!`, 2);
             else startPenaltyMode();
             return;
         }
@@ -672,4 +850,294 @@ function useTimeout(p, e) {
         config.timeouts[p]--; currentShot += 30;
         updateUI();
     }
+}
+
+function recordCompletedMatchStats(winnerSide, p1MaxHr, p2MaxHr) {
+    if (matchStatsRecorded) return;
+    matchStatsRecorded = true;
+    loadPlayerStats();
+    const roster = getRegisteredPlayers();
+    const p1Name = normalizePlayerName(config.name1);
+    const p2Name = normalizePlayerName(config.name2);
+    const p1Reg = roster.indexOf(p1Name) !== -1;
+    const p2Reg = roster.indexOf(p2Name) !== -1;
+    if (!p1Reg && !p2Reg) return;
+
+    try {
+        localStorage.setItem(LAST_MATCH_STATS_KEY, JSON.stringify(playerStats));
+    } catch (e) {}
+
+    const p1Innings = Math.max(1, totalInnings);
+    const p2Innings = (turn === 1) ? Math.max(1, totalInnings - 1) : Math.max(1, totalInnings);
+    const p1Points = scores[1];
+    const p2Points = scores[2];
+    const p1Won = winnerSide === 1;
+    const p2Won = winnerSide === 2;
+
+    function applyPlayerResult(myName, oppName, oppReg, points, innings, hr1, won) {
+        const prof = playerStats[myName] || createEmptyProfile();
+        const matchAvg = innings > 0 ? (points / innings) : 0;
+        prof.matches += 1;
+        if (won) prof.wins += 1;
+        else prof.losses += 1;
+        prof.totalPoints += points;
+        prof.totalInnings += innings;
+        if (matchAvg > prof.bestAvg) prof.bestAvg = matchAvg;
+        if (hr1 > prof.maxHr) prof.maxHr = hr1;
+        if (oppReg && oppName !== myName) {
+            if (!prof.h2h[oppName] || typeof prof.h2h[oppName] !== 'object') {
+                prof.h2h[oppName] = { matches: 0, wins: 0, losses: 0, points: 0, innings: 0 };
+            }
+            prof.h2h[oppName].matches += 1;
+            if (won) prof.h2h[oppName].wins += 1;
+            else prof.h2h[oppName].losses += 1;
+            prof.h2h[oppName].points += points;
+            prof.h2h[oppName].innings += innings;
+        }
+        playerStats[myName] = prof;
+    }
+
+    if (p1Reg) applyPlayerResult(p1Name, p2Name, p2Reg, p1Points, p1Innings, p1MaxHr, p1Won);
+    if (p2Reg) applyPlayerResult(p2Name, p1Name, p1Reg, p2Points, p2Innings, p2MaxHr, p2Won);
+    savePlayerStats();
+}
+function openStatsOverlay() {
+    loadExtraPlayers();
+    loadPlayerStats();
+    hideRestoreBox();
+    renderStatsOverlay();
+    document.getElementById('stats-overlay').style.display = 'flex';
+}
+function closeStatsOverlay() {
+    document.getElementById('stats-overlay').style.display = 'none';
+}
+function renderStatsOverlay() {
+    ensureAllProfiles();
+    const roster = getRegisteredPlayers();
+    const rows = roster.map(name => {
+        const p = playerStats[name] || createEmptyProfile();
+        const avg = p.totalInnings > 0 ? (p.totalPoints / p.totalInnings) : 0;
+        const winPct = p.matches > 0 ? Math.round((p.wins / p.matches) * 100) : 0;
+        return { name, p, avg, winPct };
+    });
+    rows.sort((a, b) => {
+        if (b.avg !== a.avg) return b.avg - a.avg;
+        if (b.p.wins !== a.p.wins) return b.p.wins - a.p.wins;
+        return b.p.matches - a.p.matches;
+    });
+
+    const tbody = document.getElementById('league-stats-body');
+    if (tbody) {
+        tbody.innerHTML = '';
+        rows.forEach(item => {
+            const tr = document.createElement('tr');
+            const isExtra = !isCorePlayer(item.name);
+            const tdName = document.createElement('td');
+            tdName.style.fontWeight = 'bold';
+            tdName.style.color = item.name === 'MİSAFİR' ? '#ffd54f' : '#ffffff';
+            tdName.innerText = item.name;
+            tr.appendChild(tdName);
+
+            const vals = [
+                item.p.matches,
+                item.p.wins,
+                item.p.losses,
+                item.winPct + '%',
+                item.avg.toFixed(3),
+                item.p.bestAvg.toFixed(3),
+                item.p.maxHr
+            ];
+            vals.forEach(v => {
+                const td = document.createElement('td');
+                td.innerText = v;
+                tr.appendChild(td);
+            });
+
+            const tdAction = document.createElement('td');
+            if (isExtra) {
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = 'btn-row-del';
+                delBtn.innerText = 'Sil';
+                delBtn.onclick = function(ev) { deleteExtraPlayer(item.name, ev); };
+                tdAction.appendChild(delBtn);
+            }
+            tr.appendChild(tdAction);
+            tbody.appendChild(tr);
+        });
+    }
+
+    const selA = document.getElementById('h2h-player-a');
+    const selB = document.getElementById('h2h-player-b');
+    if (selA && selB) {
+        const prevA = selA.value;
+        const prevB = selB.value;
+        selA.innerHTML = '';
+        selB.innerHTML = '';
+        roster.forEach(name => {
+            const optA = document.createElement('option');
+            optA.value = name;
+            optA.innerText = name;
+            selA.appendChild(optA);
+
+            const optB = document.createElement('option');
+            optB.value = name;
+            optB.innerText = name;
+            selB.appendChild(optB);
+        });
+        selA.value = roster.indexOf(prevA) !== -1 ? prevA : (roster[0] || '');
+        if (roster.indexOf(prevB) !== -1 && prevB !== selA.value) {
+            selB.value = prevB;
+        } else {
+            selB.value = roster[1] || roster[0] || '';
+        }
+        renderH2H();
+    }
+
+    const undoStatBtn = document.getElementById('btn-undo-match-stat');
+    if (undoStatBtn) {
+        let hasBackup = false;
+        try { hasBackup = !!localStorage.getItem(LAST_MATCH_STATS_KEY); } catch (e) {}
+        undoStatBtn.disabled = !hasBackup;
+    }
+}
+function renderH2H() {
+    const selA = document.getElementById('h2h-player-a');
+    const selB = document.getElementById('h2h-player-b');
+    const box = document.getElementById('h2h-result');
+    if (!selA || !selB || !box) return;
+    const a = selA.value;
+    const b = selB.value;
+    if (!a || !b || a === b) {
+        box.innerHTML = '<div class="h2h-avg-line">Karşılaştırmak için iki farklı oyuncu seçin.</div>';
+        return;
+    }
+    const profA = playerStats[a] || createEmptyProfile();
+    const profB = playerStats[b] || createEmptyProfile();
+    const recA = (profA.h2h && profA.h2h[b]) ? profA.h2h[b] : { matches: 0, wins: 0, losses: 0, points: 0, innings: 0 };
+    const recB = (profB.h2h && profB.h2h[a]) ? profB.h2h[a] : { matches: 0, wins: 0, losses: 0, points: 0, innings: 0 };
+    const avgA = recA.innings > 0 ? (recA.points / recA.innings).toFixed(3) : '0.000';
+    const avgB = recB.innings > 0 ? (recB.points / recB.innings).toFixed(3) : '0.000';
+    box.innerHTML = `
+        <div class="h2h-score-big">${a} ${recA.wins} - ${recB.wins} ${b}</div>
+        <div class="h2h-avg-line">Toplam Maç: ${recA.matches} &nbsp;|&nbsp; ${a} Ort: ${avgA} &nbsp;|&nbsp; ${b} Ort: ${avgB}</div>
+    `;
+}
+function undoLastMatchStats() {
+    let raw = null;
+    try { raw = localStorage.getItem(LAST_MATCH_STATS_KEY); } catch (e) {}
+    if (!raw) {
+        alert('Geri alınacak son maç kaydı bulunamadı.');
+        return;
+    }
+    if (!confirm('Son kaydedilen maç istatistiği geri alınsın mı?')) return;
+    try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+            playerStats = parsed;
+            ensureAllProfiles();
+            savePlayerStats();
+            localStorage.removeItem(LAST_MATCH_STATS_KEY);
+            renderStatsOverlay();
+            alert('Son maç kaydı geri alındı.');
+        }
+    } catch (e) {
+        alert('Son maç yedeği okunamadı.');
+    }
+}
+function copyStatsBackup() {
+    loadExtraPlayers();
+    loadPlayerStats();
+    const payload = JSON.stringify({
+        version: 1,
+        extraPlayers: extraPlayers,
+        playerStats: playerStats
+    }, null, 2);
+
+    const ta = document.getElementById('backup-json-input');
+    if (ta) ta.value = payload;
+
+    let copied = false;
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(payload).then(() => {
+            alert('Yedek JSON panoya kopyalandı.');
+        }).catch(() => {
+            fallbackCopyText(payload);
+        });
+        return;
+    }
+    copied = fallbackCopyText(payload);
+    if (copied) {
+        alert('Yedek JSON panoya kopyalandı.');
+    } else {
+        showRestoreBox();
+        if (ta) {
+            ta.focus();
+            ta.select();
+        }
+        alert('Otomatik kopyalama desteklenmiyor; aşağıdaki kutudan JSON metnini kopyalayabilirsiniz.');
+    }
+}
+function fallbackCopyText(text) {
+    try {
+        const tmp = document.createElement('textarea');
+        tmp.value = text;
+        tmp.setAttribute('readonly', '');
+        tmp.style.position = 'fixed';
+        tmp.style.top = '0';
+        tmp.style.left = '-9999px';
+        document.body.appendChild(tmp);
+        tmp.focus();
+        tmp.select();
+        tmp.setSelectionRange(0, text.length);
+        const ok = document.execCommand('copy');
+        document.body.removeChild(tmp);
+        return !!ok;
+    } catch (e) {
+        return false;
+    }
+}
+function showRestoreBox() {
+    const box = document.getElementById('backup-restore-box');
+    if (box) box.style.display = 'block';
+}
+function hideRestoreBox() {
+    const box = document.getElementById('backup-restore-box');
+    if (box) box.style.display = 'none';
+}
+function confirmRestoreBackup() {
+    const ta = document.getElementById('backup-json-input');
+    if (!ta || !ta.value.trim()) {
+        alert('Lütfen JSON yedek metnini yapıştırın.');
+        return;
+    }
+    try {
+        const parsed = JSON.parse(ta.value.trim());
+        if (!parsed || typeof parsed !== 'object' || !parsed.playerStats || typeof parsed.playerStats !== 'object') {
+            alert('Geçersiz yedek formatı.');
+            return;
+        }
+        if (Array.isArray(parsed.extraPlayers)) {
+            extraPlayers = parsed.extraPlayers.map(normalizePlayerName).filter((n, idx, arr) => n && !isCorePlayer(n) && arr.indexOf(n) === idx);
+            saveExtraPlayers();
+        }
+        playerStats = parsed.playerStats;
+        ensureAllProfiles();
+        savePlayerStats();
+        try { localStorage.removeItem(LAST_MATCH_STATS_KEY); } catch (e) {}
+        hideRestoreBox();
+        renderPlayerChips();
+        renderStatsOverlay();
+        alert('Yedek başarıyla yüklendi.');
+    } catch (e) {
+        alert('JSON okunamadı. Lütfen geçerli bir yedek metni girin.');
+    }
+}
+function resetAllStats() {
+    if (!confirm('TÜM oyuncu istatistikleri sıfırlansın mı? Bu işlem geri alınamaz!')) return;
+    playerStats = {};
+    ensureAllProfiles();
+    savePlayerStats();
+    try { localStorage.removeItem(LAST_MATCH_STATS_KEY); } catch (e) {}
+    renderStatsOverlay();
 }
