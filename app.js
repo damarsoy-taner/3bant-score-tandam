@@ -199,6 +199,7 @@ function setViewMode(mode) {
     const segBtn = document.getElementById('btn-view-seg');
     if (flapBtn) flapBtn.classList.toggle('active', config.viewMode === 'flap');
     if (segBtn) segBtn.classList.toggle('active', config.viewMode === 'segment');
+    if (document.body) document.body.classList.toggle('view-segment', config.viewMode === 'segment');
     prevRenderedScores = { s1: null, s2: null };
 }
 (function initViewMode() {
@@ -638,10 +639,16 @@ function updateUI() {
 function updateClockUI() {
     const sd = document.getElementById('shot-clock-display');
     const circle = document.getElementById('progress-circle');
-    sd.innerText = currentShot;
+    const isWarn = currentShot <= config.warnTime;
+    sd.classList.toggle('warn', isWarn);
+    if (config.viewMode === 'segment') {
+        renderSevenSegment('shot-clock-display', currentShot, true);
+    } else {
+        sd.innerText = currentShot;
+    }
     let offset = CIRC - (currentShot / config.shotTime) * CIRC;
     circle.style.strokeDashoffset = offset;
-    circle.style.stroke = currentShot <= config.warnTime ? "red" : "#00ff00";
+    circle.style.stroke = isWarn ? "red" : "#00ff00";
 }
 function togglePause(e) {
     if (!guardTouchEvent(e)) return;
