@@ -96,7 +96,7 @@ body { background-color: var(--bg-color); color: white; font-family: 'Segoe UI',
 /* MEKANİK 7-SEGMENT (VANE / FLIP-SEGMENT) */
 .seg-digit { width: 156px; height: 320px; padding: 10px 8px; border-radius: 14px; position: relative; display: -webkit-inline-flex; display: inline-flex; -webkit-flex-shrink: 0; flex-shrink: 0; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; margin-right: 4px; background: #141619; border: 2px solid #26292e; box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.7); }
 .seg-digit:last-child { margin-right: 0; }
-.seg-digit.seg-sm { width: 4.5vh; height: 7.8vh; padding: 3px; border-radius: 6px; margin-right: 3px; border-width: 1px; }
+.seg-digit.seg-sm { width: 5.6vh; height: 9.8vh; padding: 3px; border-radius: 6px; margin-right: 3px; border-width: 1px; }
 .seg-digit.seg-sm:last-child { margin-right: 0; }
 .seg-svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .seg-vane { fill: rgba(255, 255, 255, 0.06); opacity: 0.92; transform-box: fill-box; -webkit-transform-origin: center; transform-origin: center; -webkit-transform: scaleY(0.72); transform: scaleY(0.72); -webkit-transition: -webkit-transform 180ms cubic-bezier(0.4, 0, 0.2, 1), fill 180ms ease, opacity 180ms ease; transition: transform 180ms cubic-bezier(0.4, 0, 0.2, 1), fill 180ms ease, opacity 180ms ease; }
@@ -106,7 +106,7 @@ body { background-color: var(--bg-color); color: white; font-family: 'Segoe UI',
 
 .score-card .flap-digit, .score-card .seg-digit { -webkit-transform: scaleY(1.20); transform: scaleY(1.20); -webkit-transform-origin: center center; transform-origin: center center; }
 
-.btn-timeout { width: 50%; max-width: 190px; height: 48px; -webkit-flex-shrink: 0; flex-shrink: 0; -webkit-align-self: center; align-self: center; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; text-align: center; padding: 0; line-height: 1; background: #ff4444; border: none; border-radius: 14px; color: white; font-size: 36px; font-weight: bold; z-index: 200; cursor: pointer; margin: 10px auto 0 auto; }
+.btn-timeout { width: 50%; max-width: 190px; height: 48px; -webkit-flex-shrink: 0; flex-shrink: 0; -webkit-align-self: center; align-self: center; display: -webkit-flex !important; display: flex !important; -webkit-align-items: center !important; align-items: center !important; -webkit-justify-content: center !important; justify-content: center !important; padding: 0 !important; line-height: 0 !important; text-align: center !important; vertical-align: middle !important; background: #ff4444; border: none; border-radius: 14px; color: white; font-size: 36px; font-weight: bold; z-index: 200; cursor: pointer; margin: 10px auto 0 auto; }
 
 /* ORTA PANEL */
 .center-hub { -webkit-flex: 0 0 18%; flex: 0 0 18%; width: 18%; height: 100%; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-between; justify-content: space-between; padding: 12px 0; }
@@ -116,17 +116,17 @@ body { background-color: var(--bg-color); color: white; font-family: 'Segoe UI',
 .shot-clock-svg { position: absolute; top: 0; left: 0; width: 132px; height: 132px; -webkit-transform: rotate(-90deg); transform: rotate(-90deg); opacity: 0.7; }
 .shot-clock-bg { fill: none; stroke: #222; stroke-width: 6; }
 .shot-clock-progress { fill: none; stroke: #00ff00; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
-#shot-clock-display { font-size: 7.8vh; font-weight: 900; color: #00ff00; z-index: 2; line-height: 1; }
+#shot-clock-display { font-size: 9.8vh; font-weight: 900; color: #00ff00; z-index: 2; line-height: 1; }
 .center-stat { text-align: center; line-height: 1; margin: 0; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; }
 .center-stat-label { color: #666; font-size: 1.7vh; font-weight: 800; letter-spacing: 1px; line-height: 1; margin-bottom: 4px; }
-.run-val { font-size: 7.8vh; color: #ffcc00; font-weight: 900; line-height: 1; display: -webkit-inline-flex; display: inline-flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; }
-.inn-val { font-size: 7.8vh; font-weight: 900; color: #fff; line-height: 1; display: -webkit-inline-flex; display: inline-flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; }
+.run-val { font-size: 9.8vh; color: #ffcc00; font-weight: 900; line-height: 1; display: -webkit-inline-flex; display: inline-flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; }
+.inn-val { font-size: 9.8vh; font-weight: 900; color: #fff; line-height: 1; display: -webkit-inline-flex; display: inline-flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; }
 
 /* ALT BAR */
 .bottom-bar { height: auto; -webkit-flex-shrink: 0; flex-shrink: 0; display: -webkit-flex; display: flex; -webkit-justify-content: space-between; justify-content: space-between; padding: 0 24px 2.6vh; -webkit-align-items: center; align-items: center; width: 100%; }
 .stat-group { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-evenly; justify-content: space-evenly; -webkit-flex: 1; flex: 1; min-width: 0; }
 .stat-row-top { display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; align-items: center; line-height: 1; }
-.stat-row-top .stat-item { margin-right: 28px; }
+.stat-row-top .stat-item { margin-right: 42px; }
 .stat-row-top .stat-item:last-child { margin-right: 0; }
 .stat-row-bottom { display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; align-items: center; margin-top: 1.8vh; line-height: 1; }
 .stat-item { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; white-space: nowrap; }
@@ -148,17 +148,17 @@ body { background-color: var(--bg-color); color: white; font-family: 'Segoe UI',
     .score-card { height: 41vh; max-height: 328px; padding: 4px 6px; }
     .flap-digit { font-size: 288px; padding: 4px 6px; margin-right: 4px; }
     .seg-digit { width: 144px; height: 292px; padding: 8px 6px; margin-right: 4px; }
-    .seg-digit.seg-sm { width: 4.5vh; height: 7.8vh; padding: 3px; margin-right: 3px; }
-    .btn-timeout { font-size: 32px; }
+    .seg-digit.seg-sm { width: 5.6vh; height: 9.8vh; padding: 3px; margin-right: 3px; }
+    .btn-timeout { font-size: 32px; display: -webkit-flex !important; display: flex !important; -webkit-align-items: center !important; align-items: center !important; -webkit-justify-content: center !important; justify-content: center !important; padding: 0 !important; line-height: 0 !important; text-align: center !important; vertical-align: middle !important; }
     .center-hub { height: 100%; padding: 10px 0; }
     .center-stat { margin: 0; }
     .shot-clock-container { width: 126px; height: 126px; }
     .shot-clock-svg { width: 126px; height: 126px; }
-    #shot-clock-display { font-size: 7.8vh; }
-    .run-val { font-size: 7.8vh; }
-    .inn-val { font-size: 7.8vh; }
+    #shot-clock-display { font-size: 9.8vh; font-weight: 900; }
+    .run-val { font-size: 9.8vh; font-weight: 900; }
+    .inn-val { font-size: 9.8vh; font-weight: 900; }
     .bottom-bar { height: auto; padding: 0 16px 2.6vh; }
-    .stat-row-top .stat-item { margin-right: 28px; }
+    .stat-row-top .stat-item { margin-right: 42px; }
     .stat-row-top .stat-item:last-child { margin-right: 0; }
     .stat-row-bottom { margin-top: 1.8vh; }
     .stat-label { font-size: 1.7vh; }
