@@ -217,6 +217,7 @@ function resumeActiveMatch() {
 
     document.getElementById('settings-overlay').style.display = 'none';
     isPaused = false;
+    unlockSpeechEngine();
     if (audioCtx.state === 'suspended') audioCtx.resume();
     if (timerInt) clearInterval(timerInt);
     timerInt = setInterval(tick, 1000);
@@ -413,6 +414,7 @@ function guardTouchEvent(e) {
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playBeep(freq, dur) {
     if (isMuted) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'sine';
@@ -496,8 +498,17 @@ if ('speechSynthesis' in window) {
 function unlockSpeechEngine() {
     if (speechUnlocked) return;
     speechUnlocked = true;
-    if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
+    if (audioCtx) {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        try {
+            const silentBuf = audioCtx.createBuffer(1, 1, 22050);
+            const src = audioCtx.createBufferSource();
+            src.buffer = silentBuf;
+            src.connect(audioCtx.destination);
+            src.start(0);
+        } catch (e) {}
     }
     if ('speechSynthesis' in window) {
         try {
@@ -536,27 +547,20 @@ function numberToTurkish(n) {
 function speakText(text, opts) {
     if (isMuted) return;
     if (!('speechSynthesis' in window) || !text) return;
-    if (speakTimer) {
-        clearTimeout(speakTimer);
-        speakTimer = null;
-    }
-    speakTimer = setTimeout(() => {
-        speakTimer = null;
-        try {
-            if (!trVoice) loadTurkishVoice();
-            window.speechSynthesis.cancel();
-            if (typeof window.speechSynthesis.resume === 'function') {
-                window.speechSynthesis.resume();
-            }
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'tr-TR';
-            utterance.volume = 1.0;
-            utterance.rate = (opts && opts.rate) ? opts.rate : 0.78;
-            utterance.pitch = (opts && opts.pitch) ? opts.pitch : 1.12;
-            if (trVoice) utterance.voice = trVoice;
-            window.speechSynthesis.speak(utterance);
-        } catch (e) {}
-    }, 20);
+    try {
+        if (!trVoice) loadTurkishVoice();
+        window.speechSynthesis.cancel();
+        if (typeof window.speechSynthesis.resume === 'function') {
+            window.speechSynthesis.resume();
+        }
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'tr-TR';
+        utterance.volume = 1.0;
+        utterance.rate = (opts && opts.rate) ? opts.rate : 0.78;
+        utterance.pitch = (opts && opts.pitch) ? opts.pitch : 1.12;
+        if (trVoice) utterance.voice = trVoice;
+        window.speechSynthesis.speak(utterance);
+    } catch (e) {}
 }
 function getRunPitch(run) {
     return Math.min(1.22, 1.12 + Math.max(0, run - 1) * 0.015);
@@ -633,6 +637,7 @@ function startMatch() {
     currentShot = config.shotTime;
     document.getElementById('settings-overlay').style.display = 'none';
     isPaused = false;
+    unlockSpeechEngine();
     if(audioCtx.state === 'suspended') audioCtx.resume();
     timerInt = setInterval(tick, 1000);
     updateUI();

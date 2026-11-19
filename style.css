@@ -235,3 +235,40 @@ body { background-color: var(--bg-color); color: white; font-family: 'Segoe UI',
     body { width: 100vw; height: 100vh; overflow: hidden; }
     .main-stage { padding: 4px 12px; }
 }
+
+@media (max-height: 500px) {
+    .top-info { padding: 4px 12px 0; }
+    #timer-display { font-size: 24px; }
+    .display-name, .target-badge { font-size: 20px; }
+    .timeout-dot { width: 8px; height: 8px; }
+    .score-card { height: 44vh; max-height: 175px; border-radius: 18px; border-width: 5px; }
+    .flap-digit { font-size: 122px; line-height: 1.02; padding: 2px 5px; border-radius: 10px; }
+    .seg-digit { width: 72px; height: 142px; padding: 5px 4px; }
+    .btn-timeout { height: 30px; line-height: 30px !important; font-size: 22px; margin-top: 5px; border-radius: 10px; }
+    .center-hub { padding: 2px 0; -webkit-justify-content: space-evenly; justify-content: space-evenly; }
+    #shot-clock-pause-btn { font-size: 10px; padding: 2px 10px; margin-bottom: 2px; }
+    .shot-clock-container, .shot-clock-svg { width: 68px; height: 68px; }
+    #shot-clock-display { font-size: 28px; }
+    .center-stat-label { font-size: 9px; margin-bottom: 1px; }
+    .run-val, .inn-val { font-size: 28px; }
+    .seg-digit.seg-sm { width: 18px; height: 30px; }
+    .bottom-bar { padding: 2px 14px 6px; }
+    .stat-row-top .stat-item { margin-right: 18px; }
+    .stat-row-top .stat-item:last-child { margin-right: 0; }
+    .stat-row-bottom { margin-top: 2px; }
+    .stat-label { font-size: 9px; margin-bottom: 1px; }
+    .stat-val { font-size: 20px; }
+    .bottom-ctrl-btn { padding: 5px 10px; font-size: 11px; }
+    #settings-overlay { padding: 6px 10px; }
+    #settings-overlay h1 { font-size: 16px !important; margin: 2px 0 6px 0 !important; }
+    #settings-overlay .setup-section { margin-bottom: 6px; }
+    #settings-overlay .setup-card { padding: 8px; border-radius: 12px; }
+    #settings-overlay .setup-card > * { margin-bottom: 4px; }
+    #settings-overlay .setup-card > *:last-child { margin-bottom: 0; }
+    #settings-overlay .setup-title { font-size: 12px; padding-bottom: 3px; }
+    #settings-overlay .setup-input { font-size: 13px; padding: 4px 6px; border-radius: 8px; }
+    #settings-overlay .player-chip { padding: 3px 7px; font-size: 11px; margin: 0 4px 4px 0; }
+    #settings-overlay .toggle-btn { padding: 5px; font-size: 11px; }
+    #settings-overlay .btn-start-big { padding: 8px; font-size: 16px; margin: 4px 0; }
+    #settings-overlay .btn-resume-big, #settings-overlay .btn-stats-open { padding: 7px 12px; font-size: 13px; margin: 3px 0; }
+}
