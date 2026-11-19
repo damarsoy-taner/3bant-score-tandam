@@ -17,8 +17,13 @@ const CORE_PLAYERS = ['TANER', 'ONUR', 'SÜHEYL', 'MELİH', 'ESİN', 'MİSAFİR'
 const EXTRA_PLAYERS_KEY = 'bilardo_ekstra_oyuncular_v1';
 const STATS_STORAGE_KEY = 'bilardo_oyuncu_stats_v1';
 const LAST_MATCH_STATS_KEY = 'bilardo_son_mac_yedek_v1';
+const ACTIVE_MATCH_KEY = 'bilardo_aktif_mac_v1';
+const MATCH_HISTORY_KEY = 'bilardo_mac_gecmisi_v1';
+const MUTE_KEY = 'bilardo_sessiz_v1';
 let extraPlayers = [];
 let playerStats = {};
+let matchHistory = [];
+let isMuted = false;
 let matchStatsRecorded = false;
 
 function normalizePlayerName(name) {
@@ -37,7 +42,7 @@ function getRegisteredPlayers() {
     return CORE_PLAYERS.concat(extraPlayers);
 }
 function createEmptyProfile() {
-    return { matches: 0, wins: 0, losses: 0, totalPoints: 0, totalInnings: 0, bestAvg: 0, maxHr: 0, h2h: {} };
+    return { matches: 0, wins: 0, losses: 0, totalPoints: 0, totalInnings: 0, bestAvg: 0, hr1: 0, hr2: 0, hr3: 0, h2h: {} };
 }
 function loadExtraPlayers() {
     try {
@@ -68,10 +73,25 @@ function ensureAllProfiles() {
             if (typeof p.totalPoints !== 'number') p.totalPoints = 0;
             if (typeof p.totalInnings !== 'number') p.totalInnings = 0;
             if (typeof p.bestAvg !== 'number') p.bestAvg = 0;
-            if (typeof p.maxHr !== 'number') p.maxHr = 0;
+            if (typeof p.hr1 !== 'number') p.hr1 = (typeof p.maxHr === 'number') ? p.maxHr : 0;
+            if (typeof p.hr2 !== 'number') p.hr2 = 0;
+            if (typeof p.hr3 !== 'number') p.hr3 = 0;
             if (!p.h2h || typeof p.h2h !== 'object') p.h2h = {};
         }
     });
+}
+function insertProfileHighRun(prof, runVal) {
+    if (!runVal || runVal <= 0) return;
+    if (runVal > prof.hr1) {
+        prof.hr3 = prof.hr2;
+        prof.hr2 = prof.hr1;
+        prof.hr1 = runVal;
+    } else if (runVal > prof.hr2) {
+        prof.hr3 = prof.hr2;
+        prof.hr2 = runVal;
+    } else if (runVal > prof.hr3) {
+        prof.hr3 = runVal;
+    }
 }
 function loadPlayerStats() {
     try {
@@ -85,6 +105,123 @@ function loadPlayerStats() {
 }
 function savePlayerStats() {
     try { localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(playerStats)); } catch (e) {}
+}
+function loadMatchHistory() {
+    try {
+        const raw = localStorage.getItem(MATCH_HISTORY_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        matchHistory = Array.isArray(parsed) ? parsed.slice(0, 30) : [];
+    } catch (e) {
+        matchHistory = [];
+    }
+}
+function saveMatchHistory() {
+    try { localStorage.setItem(MATCH_HISTORY_KEY, JSON.stringify(matchHistory.slice(0, 30))); } catch (e) {}
+}
+function loadMuteState() {
+    try {
+        isMuted = localStorage.getItem(MUTE_KEY) === '1';
+    } catch (e) {
+        isMuted = false;
+    }
+    updateMuteBtn();
+}
+function updateMuteBtn() {
+    const btn = document.getElementById('btn-mute');
+    if (btn) btn.innerText = isMuted ? '🔇' : '🔊';
+}
+function toggleMute(e) {
+    if (!guardTouchEvent(e)) return;
+    isMuted = !isMuted;
+    try { localStorage.setItem(MUTE_KEY, isMuted ? '1' : '0'); } catch (err) {}
+    if (isMuted && 'speechSynthesis' in window) {
+        try { window.speechSynthesis.cancel(); } catch (err) {}
+    }
+    updateMuteBtn();
+}
+function saveActiveMatch() {
+    if (isPaused) return;
+    try {
+        const payload = {
+            scores: scores,
+            turn: turn,
+            totalInnings: totalInnings,
+            highRuns: highRuns,
+            currentRun: currentRun,
+            matchSecs: matchSecs,
+            currentShot: currentShot,
+            shotClockPaused: shotClockPaused,
+            config: config,
+            equalizingTurn: equalizingTurn,
+            isPenaltyMode: isPenaltyMode,
+            penaltyScores: penaltyScores,
+            penaltyRound: penaltyRound,
+            historyStack: historyStack
+        };
+        localStorage.setItem(ACTIVE_MATCH_KEY, JSON.stringify(payload));
+    } catch (e) {}
+}
+function clearActiveMatch() {
+    try { localStorage.removeItem(ACTIVE_MATCH_KEY); } catch (e) {}
+    const btn = document.getElementById('btn-resume-match');
+    if (btn) btn.style.display = 'none';
+}
+function checkActiveMatchButton() {
+    const btn = document.getElementById('btn-resume-match');
+    if (!btn) return;
+    let hasSaved = false;
+    try {
+        const raw = localStorage.getItem(ACTIVE_MATCH_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.scores && parsed.config) hasSaved = true;
+        }
+    } catch (e) {}
+    btn.style.display = hasSaved ? 'block' : 'none';
+}
+function resumeActiveMatch() {
+    let saved = null;
+    try {
+        const raw = localStorage.getItem(ACTIVE_MATCH_KEY);
+        if (raw) saved = JSON.parse(raw);
+    } catch (e) {}
+    if (!saved || !saved.scores || !saved.config) {
+        checkActiveMatchButton();
+        return;
+    }
+    scores = saved.scores;
+    turn = saved.turn || 1;
+    totalInnings = saved.totalInnings || 1;
+    highRuns = saved.highRuns || { 1: { hr1: 0, hr2: 0, hr3: 0 }, 2: { hr1: 0, hr2: 0, hr3: 0 } };
+    currentRun = saved.currentRun || 0;
+    matchSecs = saved.matchSecs || 0;
+    config = saved.config;
+    currentShot = typeof saved.currentShot === 'number' ? saved.currentShot : (config.shotTime || 30);
+    shotClockPaused = !!saved.shotClockPaused;
+    equalizingTurn = !!saved.equalizingTurn;
+    isPenaltyMode = !!saved.isPenaltyMode;
+    penaltyScores = saved.penaltyScores || { 1: 0, 2: 0 };
+    penaltyRound = saved.penaltyRound || 1;
+    historyStack = Array.isArray(saved.historyStack) ? saved.historyStack : [];
+    matchStatsRecorded = false;
+    prevRenderedScores = { s1: null, s2: null };
+
+    document.getElementById('disp-name1').innerText = config.name1 || 'BEYAZ';
+    document.getElementById('disp-name2').innerText = config.name2 || 'SARI';
+    document.getElementById('target-badge-1').innerText = `(${config.targets[1]})`;
+    document.getElementById('target-badge-2').innerText = `(${config.targets[2]})`;
+    document.getElementById('clock-box').style.visibility = config.shotActive ? 'visible' : 'hidden';
+
+    const m = Math.floor(matchSecs / 60), s = matchSecs % 60;
+    document.getElementById('timer-display').innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+
+    document.getElementById('settings-overlay').style.display = 'none';
+    isPaused = false;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (timerInt) clearInterval(timerInt);
+    timerInt = setInterval(tick, 1000);
+    updatePauseBtn();
+    updateUI();
 }
 function escapeAttr(str) {
     return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -251,6 +388,9 @@ function deleteExtraPlayer(name, e) {
 }
 loadExtraPlayers();
 loadPlayerStats();
+loadMatchHistory();
+loadMuteState();
+checkActiveMatchButton();
 renderPlayerChips();
 
 function guardTouchEvent(e) {
@@ -272,6 +412,7 @@ function guardTouchEvent(e) {
 // Ses Sentezleyici
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playBeep(freq, dur) {
+    if (isMuted) return;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'sine';
@@ -284,6 +425,7 @@ function playBeep(freq, dur) {
     osc.stop(audioCtx.currentTime + dur);
 }
 function playFlapSound() {
+    if (isMuted) return;
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const now = audioCtx.currentTime;
     // Mekanik plastik/metal yaprak çarpma sesi (filtreli kısa darbe + tok gövde vuruşu)
@@ -392,6 +534,7 @@ function numberToTurkish(n) {
     return String(num);
 }
 function speakText(text, opts) {
+    if (isMuted) return;
     if (!('speechSynthesis' in window) || !text) return;
     if (speakTimer) {
         clearTimeout(speakTimer);
@@ -421,6 +564,7 @@ function getRunPitch(run) {
 
 function resetMatch(btn) {
     if (!checkTwoTapConfirm(btn, 'Emin misin? Tekrar Dokun')) return;
+    clearActiveMatch();
     location.reload();
 }
 function setMode(m) {
@@ -492,6 +636,7 @@ function startMatch() {
     if(audioCtx.state === 'suspended') audioCtx.resume();
     timerInt = setInterval(tick, 1000);
     updateUI();
+    saveActiveMatch();
 }
 function tick() {
     if (isPaused) return;
@@ -513,10 +658,13 @@ function tick() {
         }
         
         if (currentShot === 0) {
+            turnLockUntil = Date.now() + 500;
             playBeep(440, 0.5); // Süre bitti kalın bip
-            changeTurn();
+            changeTurn(false, false);
+            return;
         }
     }
+    saveActiveMatch();
 }
 function commitRun(p, run) {
     if (run <= 0) return;
@@ -586,6 +734,7 @@ function undoLastAction(e) {
     shotClockPaused = false;
     updatePauseBtn();
     updateUI();
+    saveActiveMatch();
     if (hadScoreDecrease) {
         speakText(`Eksi bir, ... ${numberToTurkish(currentRun)}`, { pitch: 1.08, rate: 0.76 });
     }
@@ -642,6 +791,7 @@ function handleInteraction(p, type, e) {
         speakText(`Eksi bir, ... ${numberToTurkish(currentRun)}`, { pitch: 1.08, rate: 0.76 });
     }
     updateUI();
+    saveActiveMatch();
 }
 function checkMatchEnd() {
     if (scores[turn] >= config.targets[turn]) {
@@ -669,10 +819,11 @@ function endMatch(msg, winnerSide) {
     const p1HR = getPlayerHighRuns(1);
     const p2HR = getPlayerHighRuns(2);
     tbody.innerHTML = `
-        <tr><td>${config.name1}</td><td>${scores[1]}</td><td>${p1HR.hr1}</td><td>${p1HR.hr2}</td><td>${p1HR.hr3}</td><td>${(scores[1]/totalInnings).toFixed(3)}</td></tr>
-        <tr><td>${config.name2}</td><td>${scores[2]}</td><td>${p2HR.hr1}</td><td>${p2HR.hr2}</td><td>${p2HR.hr3}</td><td>${(scores[2]/(turn===1?Math.max(1,totalInnings-1):totalInnings)).toFixed(3)}</td></tr>
+        <tr><td>${escapeAttr(config.name1)}</td><td>${scores[1]}</td><td>${p1HR.hr1}</td><td>${p1HR.hr2}</td><td>${p1HR.hr3}</td><td>${(scores[1]/totalInnings).toFixed(3)}</td></tr>
+        <tr><td>${escapeAttr(config.name2)}</td><td>${scores[2]}</td><td>${p2HR.hr1}</td><td>${p2HR.hr2}</td><td>${p2HR.hr3}</td><td>${(scores[2]/(turn===1?Math.max(1,totalInnings-1):totalInnings)).toFixed(3)}</td></tr>
     `;
-    recordCompletedMatchStats(winnerSide, p1HR.hr1, p2HR.hr1);
+    recordCompletedMatchStats(winnerSide, p1HR, p2HR);
+    clearActiveMatch();
     document.getElementById('end-match-overlay').style.display = 'flex';
 }
 function changeTurn(skipSnapshot = false, isEqualizingStart = false, e = null) {
@@ -735,6 +886,7 @@ function changeTurn(skipSnapshot = false, isEqualizingStart = false, e = null) {
     shotClockPaused = false;
     updatePauseBtn();
     updateUI();
+    saveActiveMatch();
 }
 function buildFlapDigitHTML(oldD, newD, isFlipping) {
     if (!isFlipping) {
@@ -896,7 +1048,8 @@ function updateClockUI() {
     const sd = document.getElementById('shot-clock-display');
     const circle = document.getElementById('progress-circle');
     sd.innerText = currentShot;
-    let offset = CIRC - (currentShot / config.shotTime) * CIRC;
+    const ratio = config.shotTime > 0 ? Math.min(1, Math.max(0, currentShot / config.shotTime)) : 0;
+    let offset = CIRC - ratio * CIRC;
     circle.style.strokeDashoffset = offset;
     circle.style.stroke = currentShot <= config.warnTime ? "red" : "#00ff00";
 }
@@ -916,22 +1069,26 @@ function useTimeout(p, e) {
         saveSnapshot();
         config.timeouts[p]--; currentShot += 30;
         updateUI();
+        saveActiveMatch();
     }
 }
 
-function recordCompletedMatchStats(winnerSide, p1MaxHr, p2MaxHr) {
+function recordCompletedMatchStats(winnerSide, p1HR, p2HR) {
     if (matchStatsRecorded) return;
     matchStatsRecorded = true;
     loadPlayerStats();
+    loadMatchHistory();
     const roster = getRegisteredPlayers();
     const p1Name = normalizePlayerName(config.name1);
     const p2Name = normalizePlayerName(config.name2);
     const p1Reg = roster.indexOf(p1Name) !== -1;
     const p2Reg = roster.indexOf(p2Name) !== -1;
-    if (!p1Reg && !p2Reg) return;
 
     try {
-        localStorage.setItem(LAST_MATCH_STATS_KEY, JSON.stringify(playerStats));
+        localStorage.setItem(LAST_MATCH_STATS_KEY, JSON.stringify({
+            stats: playerStats,
+            history: matchHistory
+        }));
     } catch (e) {}
 
     const p1Innings = Math.max(1, totalInnings);
@@ -941,36 +1098,55 @@ function recordCompletedMatchStats(winnerSide, p1MaxHr, p2MaxHr) {
     const p1Won = winnerSide === 1;
     const p2Won = winnerSide === 2;
 
-    function applyPlayerResult(myName, oppName, oppReg, points, innings, hr1, won) {
-        const prof = playerStats[myName] || createEmptyProfile();
-        const matchAvg = innings > 0 ? (points / innings) : 0;
-        prof.matches += 1;
-        if (won) prof.wins += 1;
-        else prof.losses += 1;
-        prof.totalPoints += points;
-        prof.totalInnings += innings;
-        if (matchAvg > prof.bestAvg) prof.bestAvg = matchAvg;
-        if (hr1 > prof.maxHr) prof.maxHr = hr1;
-        if (oppReg && oppName !== myName) {
-            if (!prof.h2h[oppName] || typeof prof.h2h[oppName] !== 'object') {
-                prof.h2h[oppName] = { matches: 0, wins: 0, losses: 0, points: 0, innings: 0 };
+    if (p1Reg || p2Reg) {
+        function applyPlayerResult(myName, oppName, oppReg, points, innings, hrObj, won) {
+            const prof = playerStats[myName] || createEmptyProfile();
+            const matchAvg = innings > 0 ? (points / innings) : 0;
+            prof.matches += 1;
+            if (won) prof.wins += 1;
+            else prof.losses += 1;
+            prof.totalPoints += points;
+            prof.totalInnings += innings;
+            if (matchAvg > prof.bestAvg) prof.bestAvg = matchAvg;
+            if (hrObj) {
+                insertProfileHighRun(prof, hrObj.hr1);
+                insertProfileHighRun(prof, hrObj.hr2);
+                insertProfileHighRun(prof, hrObj.hr3);
             }
-            prof.h2h[oppName].matches += 1;
-            if (won) prof.h2h[oppName].wins += 1;
-            else prof.h2h[oppName].losses += 1;
-            prof.h2h[oppName].points += points;
-            prof.h2h[oppName].innings += innings;
+            if (oppReg && oppName !== myName) {
+                if (!prof.h2h[oppName] || typeof prof.h2h[oppName] !== 'object') {
+                    prof.h2h[oppName] = { matches: 0, wins: 0, losses: 0, points: 0, innings: 0 };
+                }
+                prof.h2h[oppName].matches += 1;
+                if (won) prof.h2h[oppName].wins += 1;
+                else prof.h2h[oppName].losses += 1;
+                prof.h2h[oppName].points += points;
+                prof.h2h[oppName].innings += innings;
+            }
+            playerStats[myName] = prof;
         }
-        playerStats[myName] = prof;
+
+        if (p1Reg) applyPlayerResult(p1Name, p2Name, p2Reg, p1Points, p1Innings, p1HR, p1Won);
+        if (p2Reg) applyPlayerResult(p2Name, p1Name, p1Reg, p2Points, p2Innings, p2HR, p2Won);
+        savePlayerStats();
     }
 
-    if (p1Reg) applyPlayerResult(p1Name, p2Name, p2Reg, p1Points, p1Innings, p1MaxHr, p1Won);
-    if (p2Reg) applyPlayerResult(p2Name, p1Name, p1Reg, p2Points, p2Innings, p2MaxHr, p2Won);
-    savePlayerStats();
+    matchHistory.unshift({
+        date: new Date().toISOString(),
+        p1: p1Name || 'BEYAZ',
+        p2: p2Name || 'SARI',
+        s1: p1Points,
+        s2: p2Points,
+        innings: p1Innings,
+        winner: winnerSide === 1 ? (p1Name || 'BEYAZ') : (p2Name || 'SARI')
+    });
+    if (matchHistory.length > 30) matchHistory = matchHistory.slice(0, 30);
+    saveMatchHistory();
 }
 function openStatsOverlay() {
     loadExtraPlayers();
     loadPlayerStats();
+    loadMatchHistory();
     hideRestoreBox();
     renderStatsOverlay();
     document.getElementById('stats-overlay').style.display = 'flex';
@@ -978,7 +1154,7 @@ function openStatsOverlay() {
 function closeStatsOverlay() {
     document.getElementById('stats-overlay').style.display = 'none';
 }
-function renderStatsOverlay() {
+function getSortedLeagueRows() {
     ensureAllProfiles();
     const roster = getRegisteredPlayers();
     const rows = roster.map(name => {
@@ -992,6 +1168,53 @@ function renderStatsOverlay() {
         if (b.p.wins !== a.p.wins) return b.p.wins - a.p.wins;
         return b.p.matches - a.p.matches;
     });
+    return rows;
+}
+function renderRecentMatches() {
+    const container = document.getElementById('recent-matches-list');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!matchHistory || matchHistory.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'h2h-avg-line';
+        empty.style.padding = '8px 0';
+        empty.innerText = 'Henüz tamamlanmış maç kaydı yok.';
+        container.appendChild(empty);
+        return;
+    }
+    matchHistory.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'recent-match-row';
+
+        let dateStr = '';
+        try {
+            const d = new Date(item.date);
+            if (!isNaN(d.getTime())) {
+                dateStr = String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+            }
+        } catch (e) {}
+
+        const dSpan = document.createElement('span');
+        dSpan.className = 'recent-match-date';
+        dSpan.innerText = dateStr;
+
+        const sSpan = document.createElement('span');
+        sSpan.className = 'recent-match-score';
+        sSpan.innerText = item.p1 + ' ' + item.s1 + ' - ' + item.s2 + ' ' + item.p2;
+
+        const iSpan = document.createElement('span');
+        iSpan.className = 'recent-match-inn';
+        iSpan.innerText = item.innings + ' El (' + item.winner + ')';
+
+        row.appendChild(dSpan);
+        row.appendChild(sSpan);
+        row.appendChild(iSpan);
+        container.appendChild(row);
+    });
+}
+function renderStatsOverlay() {
+    const roster = getRegisteredPlayers();
+    const rows = getSortedLeagueRows();
 
     const tbody = document.getElementById('league-stats-body');
     if (tbody) {
@@ -1012,7 +1235,9 @@ function renderStatsOverlay() {
                 item.winPct + '%',
                 item.avg.toFixed(3),
                 item.p.bestAvg.toFixed(3),
-                item.p.maxHr
+                item.p.hr1,
+                item.p.hr2,
+                item.p.hr3
             ];
             vals.forEach(v => {
                 const td = document.createElement('td');
@@ -1067,6 +1292,7 @@ function renderStatsOverlay() {
         try { hasBackup = !!localStorage.getItem(LAST_MATCH_STATS_KEY); } catch (e) {}
         undoStatBtn.disabled = !hasBackup;
     }
+    renderRecentMatches();
 }
 function renderH2H() {
     const selA = document.getElementById('h2h-player-a');
@@ -1085,9 +1311,11 @@ function renderH2H() {
     const recB = (profB.h2h && profB.h2h[a]) ? profB.h2h[a] : { matches: 0, wins: 0, losses: 0, points: 0, innings: 0 };
     const avgA = recA.innings > 0 ? (recA.points / recA.innings).toFixed(3) : '0.000';
     const avgB = recB.innings > 0 ? (recB.points / recB.innings).toFixed(3) : '0.000';
+    const safeA = escapeAttr(a);
+    const safeB = escapeAttr(b);
     box.innerHTML = `
-        <div class="h2h-score-big">${a} ${recA.wins} - ${recB.wins} ${b}</div>
-        <div class="h2h-avg-line">Toplam Maç: ${recA.matches} &nbsp;|&nbsp; ${a} Ort: ${avgA} &nbsp;|&nbsp; ${b} Ort: ${avgB}</div>
+        <div class="h2h-score-big">${safeA} ${recA.wins} - ${recB.wins} ${safeB}</div>
+        <div class="h2h-avg-line">Toplam Maç: ${recA.matches} &nbsp;|&nbsp; ${safeA} Ort: ${avgA} &nbsp;|&nbsp; ${safeB} Ort: ${avgB}</div>
     `;
 }
 function setStatsStatus(msg) {
@@ -1116,7 +1344,15 @@ function undoLastMatchStats(btn) {
     try {
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object') {
-            playerStats = parsed;
+            if (parsed.stats && typeof parsed.stats === 'object') {
+                playerStats = parsed.stats;
+                if (Array.isArray(parsed.history)) {
+                    matchHistory = parsed.history.slice(0, 30);
+                    saveMatchHistory();
+                }
+            } else {
+                playerStats = parsed;
+            }
             ensureAllProfiles();
             savePlayerStats();
             try { localStorage.removeItem(LAST_MATCH_STATS_KEY); } catch (err) {}
@@ -1130,10 +1366,12 @@ function undoLastMatchStats(btn) {
 function copyStatsBackup() {
     loadExtraPlayers();
     loadPlayerStats();
+    loadMatchHistory();
     const payload = JSON.stringify({
-        version: 1,
+        version: 2,
         extraPlayers: extraPlayers,
-        playerStats: playerStats
+        playerStats: playerStats,
+        matchHistory: matchHistory
     }, null, 2);
 
     const ta = document.getElementById('backup-json-input');
@@ -1210,6 +1448,10 @@ function confirmRestoreBackup() {
         playerStats = parsed.playerStats;
         ensureAllProfiles();
         savePlayerStats();
+        if (Array.isArray(parsed.matchHistory)) {
+            matchHistory = parsed.matchHistory.slice(0, 30);
+            saveMatchHistory();
+        }
         try { localStorage.removeItem(LAST_MATCH_STATS_KEY); } catch (e) {}
         hideRestoreBox();
         renderPlayerChips();
@@ -1224,7 +1466,59 @@ function resetAllStats(btn) {
     playerStats = {};
     ensureAllProfiles();
     savePlayerStats();
+    matchHistory = [];
+    saveMatchHistory();
     try { localStorage.removeItem(LAST_MATCH_STATS_KEY); } catch (e) {}
     renderStatsOverlay();
     setStatsStatus('Tüm istatistikler sıfırlandı.');
+}
+function exportLeagueCSV() {
+    const rows = getSortedLeagueRows();
+    const lines = ['OYUNCU;O;G;M;%;GENEL AVG;BEST AVG;HR1;HR2;HR3'];
+    rows.forEach(item => {
+        const safeName = '"' + String(item.name).replace(/"/g, '""') + '"';
+        lines.push([
+            safeName,
+            item.p.matches,
+            item.p.wins,
+            item.p.losses,
+            item.winPct + '%',
+            item.avg.toFixed(3),
+            item.p.bestAvg.toFixed(3),
+            item.p.hr1,
+            item.p.hr2,
+            item.p.hr3
+        ].join(';'));
+    });
+    const csvContent = '\uFEFF' + lines.join('\r\n');
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    if (!isIOS) {
+        try {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'bilardo_puan_durumu.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+            setStatsStatus('CSV dosyası indirildi.');
+            return;
+        } catch (e) {}
+    }
+
+    const ta = document.getElementById('backup-json-input');
+    if (ta) ta.value = csvContent;
+    if (fallbackCopyText(csvContent)) {
+        setStatsStatus('CSV panoya kopyalandı.');
+    } else {
+        showRestoreBox();
+        if (ta) {
+            ta.focus();
+            ta.select();
+        }
+        setStatsStatus('CSV hazır; aşağıdaki kutudan kopyalayabilirsiniz.');
+    }
 }

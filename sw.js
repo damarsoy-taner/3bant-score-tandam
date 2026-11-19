@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bilardo-scoreboard-v14';
+const CACHE_NAME = 'bilardo-scoreboard-v15';
 const ASSETS = [
     './',
     './index.html',
@@ -37,7 +37,7 @@ self.addEventListener('fetch', function(event) {
         caches.match(event.request).then(function(cached) {
             if (cached) return cached;
             return fetch(event.request).then(function(response) {
-                if (response && response.status === 200 && response.type === 'basic') {
+                if (response && response.status === 200 && (response.type === 'basic' || response.type === 'cors')) {
                     const copy = response.clone();
                     caches.open(CACHE_NAME).then(function(cache) {
                         cache.put(event.request, copy);

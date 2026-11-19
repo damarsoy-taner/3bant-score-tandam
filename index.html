@@ -27,20 +27,20 @@
         </div>
         <div class="setup-card">
             <div class="setup-title">MAÇ MODU</div>
-            <div style="display: flex; gap: 5px;">
-                <div id="btn-mode-standard" class="toggle-btn active" style="flex:1" onclick="setMode('standard')">STANDART MAÇ (45 EL)</div>
-                <div id="btn-mode-handicap" class="toggle-btn" style="flex:1" onclick="setMode('handicap')">HANDİKAPLI MAÇ</div>
+            <div class="setup-row">
+                <div id="btn-mode-standard" class="toggle-btn active" style="-webkit-flex:1; flex:1;" onclick="setMode('standard')">STANDART MAÇ (45 EL)</div>
+                <div id="btn-mode-handicap" class="toggle-btn" style="-webkit-flex:1; flex:1;" onclick="setMode('handicap')">HANDİKAPLI MAÇ</div>
             </div>
-            <div id="standard-options" style="display: flex; flex-direction: column; gap: 5px; margin-top: 5px;">
+            <div id="standard-options" class="setup-col" style="margin-top: 5px;">
                 <span class="setup-label">HEDEF SAYI (ORTAK)</span>
-                <div style="display: flex; gap: 5px;">
-                    <div id="btn-target-30" class="toggle-btn" style="flex:1" onclick="setStandardTarget(30)">30 SAYI</div>
-                    <div id="btn-target-40" class="toggle-btn active" style="flex:1" onclick="setStandardTarget(40)">40 SAYI</div>
+                <div class="setup-row">
+                    <div id="btn-target-30" class="toggle-btn" style="-webkit-flex:1; flex:1;" onclick="setStandardTarget(30)">30 SAYI</div>
+                    <div id="btn-target-40" class="toggle-btn active" style="-webkit-flex:1; flex:1;" onclick="setStandardTarget(40)">40 SAYI</div>
                 </div>
             </div>
-            <div id="handicap-options" style="display: none; gap: 8px; margin-top: 5px;">
-                <div class="setup-group" style="flex:1"><span class="setup-label">1. OYUNCU HEDEF</span><input type="number" id="input-target-1" class="setup-input" value="40" min="1"></div>
-                <div class="setup-group" style="flex:1"><span class="setup-label">2. OYUNCU HEDEF</span><input type="number" id="input-target-2" class="setup-input" value="30" min="1"></div>
+            <div id="handicap-options" class="setup-row" style="display: none; margin-top: 5px;">
+                <div class="setup-group setup-col-item" style="-webkit-flex:1; flex:1;"><span class="setup-label">1. OYUNCU HEDEF</span><input type="number" id="input-target-1" class="setup-input" value="40" min="1"></div>
+                <div class="setup-group setup-col-item" style="-webkit-flex:1; flex:1;"><span class="setup-label">2. OYUNCU HEDEF</span><input type="number" id="input-target-2" class="setup-input" value="30" min="1"></div>
             </div>
         </div>
     </div>
@@ -48,20 +48,21 @@
         <div class="setup-card">
             <div class="setup-title">SÜRE AYARLARI</div>
             <div id="btn-shot-toggle" class="toggle-btn active" onclick="toggleShotActive()">SÜRE SİSTEMİ: AKTİF</div>
-            <div id="shot-settings-area" style="display: flex; gap: 8px; margin-top: 5px;">
-                <div class="setup-group" style="flex:1"><span class="setup-label">SÜRE</span><input type="number" id="input-shot-time" class="setup-input" value="30"></div>
-                <div class="setup-group" style="flex:1"><span class="setup-label">EK HAK</span><input type="number" id="input-to-count" class="setup-input" value="3"></div>
-                <div class="setup-group" style="flex:1"><span class="setup-label">UYARI SESİ (Sn)</span><input type="number" id="input-warn-time" class="setup-input" value="10"></div>
+            <div id="shot-settings-area" class="setup-row" style="margin-top: 5px;">
+                <div class="setup-group setup-col-item" style="-webkit-flex:1; flex:1;"><span class="setup-label">SÜRE</span><input type="number" id="input-shot-time" class="setup-input" value="30"></div>
+                <div class="setup-group setup-col-item" style="-webkit-flex:1; flex:1;"><span class="setup-label">EK HAK</span><input type="number" id="input-to-count" class="setup-input" value="3"></div>
+                <div class="setup-group setup-col-item" style="-webkit-flex:1; flex:1;"><span class="setup-label">UYARI SESİ (Sn)</span><input type="number" id="input-warn-time" class="setup-input" value="10"></div>
             </div>
         </div>
         <div class="setup-card">
             <div class="setup-title">SKOR GÖRÜNÜMÜ</div>
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+            <div class="setup-col" style="margin-top: 4px;">
                 <div id="btn-view-flap" class="toggle-btn active" onclick="setViewMode('flap')">Mekanik Yaprak (Split-Flap)</div>
                 <div id="btn-view-seg" class="toggle-btn" onclick="setViewMode('segment')">Mekanik 7-Segment</div>
             </div>
         </div>
     </div>
+    <button id="btn-resume-match" class="btn-resume-big" style="display: none;" onclick="resumeActiveMatch()">DEVAM EDEN MAÇA DÖN</button>
     <button class="btn-start-big" onclick="startMatch()">MAÇI BAŞLAT</button>
     <button class="btn-stats-open" onclick="openStatsOverlay()">PUAN DURUMU &amp; İSTATİSTİKLER</button>
 </div>
@@ -82,7 +83,9 @@
                             <th>%</th>
                             <th>GENEL AVG</th>
                             <th>BEST AVG</th>
-                            <th>MAX HR</th>
+                            <th>HR1</th>
+                            <th>HR2</th>
+                            <th>HR3</th>
                             <th>İŞLEM</th>
                         </tr>
                     </thead>
@@ -99,6 +102,10 @@
             </div>
             <div id="h2h-result" class="h2h-result"></div>
         </div>
+        <div class="stats-panel-card">
+            <div class="setup-title">SON MAÇLAR (SON 30)</div>
+            <div id="recent-matches-list" class="recent-matches-list"></div>
+        </div>
         <div id="backup-restore-box" class="stats-panel-card" style="display: none;">
             <div class="setup-title">JSON YEDEKTEN YÜKLE</div>
             <textarea id="backup-json-input" class="backup-textarea" placeholder="JSON yedeğini buraya yapıştırın..."></textarea>
@@ -112,6 +119,7 @@
             <button id="btn-undo-match-stat" class="stats-action-btn" onclick="undoLastMatchStats(this)">SON MAÇ KAYDINI GERİ AL</button>
             <button class="stats-action-btn" onclick="copyStatsBackup()">YEDEĞİ KOPYALA (JSON)</button>
             <button class="stats-action-btn" onclick="showRestoreBox()">YEDEKTEN YÜKLE</button>
+            <button class="stats-action-btn" onclick="exportLeagueCSV()">CSV KOPYALA / İNDİR</button>
             <button class="stats-action-btn btn-danger" onclick="resetAllStats(this)">TÜM İSTATİSTİKLERİ SIFIRLA</button>
             <button class="stats-action-btn btn-close-stats" onclick="closeStatsOverlay()">KAPAT</button>
         </div>
@@ -191,6 +199,7 @@
     </div>
     <div class="bottom-controls">
         <button id="btn-undo" class="bottom-ctrl-btn" onclick="undoLastAction(event)" ontouchend="undoLastAction(event)" disabled>↶ GERİ AL</button>
+        <button id="btn-mute" class="bottom-ctrl-btn" onclick="toggleMute(event)" ontouchend="toggleMute(event)">🔊</button>
         <button class="bottom-ctrl-btn" onclick="resetMatch(this)">YENİ MAÇ</button>
     </div>
     <div class="stat-group">
